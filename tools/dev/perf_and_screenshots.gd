@@ -12,7 +12,7 @@ func _initialize() -> void:
 
 
 func _run() -> void:
-	var out_dir: String = "C:/Users/syedhuss/.gemini/antigravity/brain/ef4eeff1-5b63-4109-b244-397d620e3288/scratch"
+	var out_dir: String = "user://screenshots"
 	for arg: String in OS.get_cmdline_user_args():
 		if arg.begins_with("--out="):
 			out_dir = arg.substr(6)
