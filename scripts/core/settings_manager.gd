@@ -21,6 +21,11 @@ var controller_deadzone: float = 0.20
 var controller_invert_y: bool = false
 var vibration_enabled: bool = true
 var vibration_intensity: float = 1.0
+var movement_profile: String = "riposte"
+var camera_bob_intensity: float = 1.0
+var weapon_bob_intensity: float = 1.0
+var camera_shake_intensity: float = 1.0
+var landing_dip_intensity: float = 1.0
 
 
 func _ready() -> void:
@@ -50,6 +55,12 @@ func load_from_save() -> void:
 	controller_invert_y = bool(s.get("controller_invert_y", false))
 	vibration_enabled = bool(s.get("vibration_enabled", true))
 	vibration_intensity = clampf(float(s.get("vibration_intensity", 1.0)), 0.0, 1.0)
+	var mp: String = str(s.get("movement_profile", "riposte")).to_lower()
+	movement_profile = mp if (mp == "classic" or mp == "riposte") else "riposte"
+	camera_bob_intensity = clampf(float(s.get("camera_bob_intensity", 1.0)), 0.0, 1.0)
+	weapon_bob_intensity = clampf(float(s.get("weapon_bob_intensity", 1.0)), 0.0, 1.0)
+	camera_shake_intensity = clampf(float(s.get("camera_shake_intensity", 1.0)), 0.0, 1.0)
+	landing_dip_intensity = clampf(float(s.get("landing_dip_intensity", 1.0)), 0.0, 1.0)
 
 
 func _save_to_disk() -> void:
@@ -73,6 +84,11 @@ func _save_to_disk() -> void:
 	s["controller_invert_y"] = controller_invert_y
 	s["vibration_enabled"] = vibration_enabled
 	s["vibration_intensity"] = vibration_intensity
+	s["movement_profile"] = movement_profile
+	s["camera_bob_intensity"] = camera_bob_intensity
+	s["weapon_bob_intensity"] = weapon_bob_intensity
+	s["camera_shake_intensity"] = camera_shake_intensity
+	s["landing_dip_intensity"] = landing_dip_intensity
 	sm.call("save_to_disk")
 
 
@@ -227,6 +243,37 @@ func set_vibration_intensity(val: float) -> void:
 	apply_all()
 
 
+func set_movement_profile(val: String) -> void:
+	var mp: String = val.to_lower()
+	movement_profile = mp if (mp == "classic" or mp == "riposte") else "riposte"
+	_save_to_disk()
+	apply_all()
+
+
+func set_camera_bob_intensity(val: float) -> void:
+	camera_bob_intensity = clampf(val, 0.0, 1.0)
+	_save_to_disk()
+	apply_all()
+
+
+func set_weapon_bob_intensity(val: float) -> void:
+	weapon_bob_intensity = clampf(val, 0.0, 1.0)
+	_save_to_disk()
+	apply_all()
+
+
+func set_camera_shake_intensity(val: float) -> void:
+	camera_shake_intensity = clampf(val, 0.0, 1.0)
+	_save_to_disk()
+	apply_all()
+
+
+func set_landing_dip_intensity(val: float) -> void:
+	landing_dip_intensity = clampf(val, 0.0, 1.0)
+	_save_to_disk()
+	apply_all()
+
+
 func reset_to_defaults() -> void:
 	var def_s: Dictionary = SaveManager.create_default_data()["settings"]
 	master_volume = float(def_s["master_volume"])
@@ -245,5 +292,10 @@ func reset_to_defaults() -> void:
 	controller_invert_y = bool(def_s["controller_invert_y"])
 	vibration_enabled = bool(def_s["vibration_enabled"])
 	vibration_intensity = float(def_s["vibration_intensity"])
+	movement_profile = str(def_s["movement_profile"])
+	camera_bob_intensity = float(def_s["camera_bob_intensity"])
+	weapon_bob_intensity = float(def_s["weapon_bob_intensity"])
+	camera_shake_intensity = float(def_s["camera_shake_intensity"])
+	landing_dip_intensity = float(def_s["landing_dip_intensity"])
 	_save_to_disk()
 	apply_all()

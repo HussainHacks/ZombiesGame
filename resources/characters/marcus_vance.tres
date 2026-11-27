@@ -10,4 +10,5 @@ archetype = "The Fast-Talking Comedian"
 short_bio = "[Provisional] Former late-night club MC who keeps the squad loose with rapid-fire jokes even when cornered. Uses humor to mask how fast he reads a room's exits."
 ui_tint = Color(0.92, 0.65, 0.22, 1)
 sleeve_color = Color(0.55, 0.34, 0.14, 1)
+skin_tone = Color(0.52, 0.34, 0.22, 1)
 dialogue_pool_id = "pool_marcus"

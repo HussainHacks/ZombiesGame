@@ -141,7 +141,8 @@ func try_fire(camera: Camera3D, space_state: PhysicsDirectSpaceState3D, exclude_
 				var hit_normal: Vector3 = result["normal"]
 				var is_target: bool = collider is Hitbox
 				if fx_parent != null:
-					ImpactEffect.spawn(fx_parent, hit_pos, hit_normal, is_target)
+					var surf: String = ImpactEffect.classify_surface(collider)
+					ImpactEffect.spawn_surface(fx_parent, hit_pos, hit_normal, surf)
 
 				if not is_target:
 					break

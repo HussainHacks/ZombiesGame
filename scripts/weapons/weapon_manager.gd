@@ -210,7 +210,9 @@ func _process(delta: float) -> void:
 				var space_state: PhysicsDirectSpaceState3D = _player.get_world_3d().direct_space_state if _player.get_world_3d() else null
 				var exclude: Array[RID] = [_player.get_rid()]
 				var fx_parent: Node = _player.get_parent()
-				active_weapon.try_fire(_camera, space_state, exclude, _player, fx_parent)
+				var fired_ok: bool = active_weapon.try_fire(_camera, space_state, exclude, _player, fx_parent)
+				if not fired_ok and active_weapon.mag_ammo == 0 and not active_weapon.is_reloading and active_viewmodel != null:
+					active_viewmodel.trigger_empty_fire()
 
 	if _recoil_recover_pitch > 0.0:
 		var step: float = minf(_recoil_recover_pitch, recoil_recovery_speed * delta)
@@ -433,7 +435,11 @@ func get_move_speed_multiplier() -> float:
 		return 1.0
 	var mult: float = active_weapon.data.move_speed_multiplier
 	if active_weapon.is_aiming:
-		mult *= ads_move_speed_multiplier
+		if _player != null:
+			var is_scoped: bool = active_weapon.data.aim_fov_multiplier < 0.7
+			mult *= (_player.scoped_ads_speed_multiplier if is_scoped else _player.ads_speed_multiplier)
+		else:
+			mult *= ads_move_speed_multiplier
 	return mult
 
 
@@ -457,12 +463,14 @@ func _spawn_viewmodel(wd: WeaponData, tier: int = 0, upg: WeaponUpgradeData = nu
 		_viewmodel_anchor.add_child(active_viewmodel)
 		if tier > 0 and upg != null:
 			_apply_viewmodel_upgrade_tint(active_viewmodel, upg.emissive_tint)
-		_attach_character_sleeves(active_viewmodel)
-		active_viewmodel.trigger_equip()
+		var cat_name: String = str(WeaponData.Category.keys()[wd.category])
+		_attach_character_sleeves(active_viewmodel, cat_name)
+		active_viewmodel.trigger_equip(switch_delay)
 
 
-func _attach_character_sleeves(rig: ViewmodelRig) -> void:
+func _attach_character_sleeves(rig: ViewmodelRig, weapon_cat: String = "rifle") -> void:
 	var sleeve_col := Color(0.25, 0.28, 0.35, 1.0)
+	var skin_col := Color(0.76, 0.57, 0.44, 1.0)
 	var gs: Node = get_node_or_null("/root/GameState")
 	if gs != null:
 		var cid: String = str(gs.get("selected_character_id"))
@@ -471,18 +479,8 @@ func _attach_character_sleeves(rig: ViewmodelRig) -> void:
 			var cd := load(char_path) as CharacterData
 			if cd != null:
 				sleeve_col = cd.sleeve_color
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = sleeve_col
-	for x_off: float in [-0.11, 0.11]:
-		var sleeve := MeshInstance3D.new()
-		sleeve.name = "Sleeve"
-		sleeve.layers = 2
-		var mesh := BoxMesh.new()
-		mesh.size = Vector3(0.065, 0.065, 0.24)
-		sleeve.mesh = mesh
-		sleeve.material_override = mat
-		sleeve.position = Vector3(x_off, -0.14, -0.12)
-		rig.add_child(sleeve)
+				skin_col = cd.skin_tone
+	rig.configure_character_and_weapon(skin_col, sleeve_col, weapon_cat)
 
 
 func _apply_viewmodel_upgrade_tint(root_node: Node, tint: Color) -> void:
@@ -502,6 +500,8 @@ func _on_weapon_fired(recoil_pitch: float, recoil_yaw: float) -> void:
 	if _player:
 		_player.apply_recoil(recoil_pitch, recoil_yaw)
 		_recoil_recover_pitch += recoil_pitch * 0.65
+		var shake_amt: float = clampf(0.18 + (active_weapon.data.damage / 180.0 if active_weapon.data else 0.2), 0.15, 0.75)
+		_player.add_camera_shake(shake_amt)
 
 	if active_viewmodel:
 		active_viewmodel.trigger_fire(0.055, recoil_pitch * 2.5)
@@ -525,9 +525,9 @@ func _on_ammo_changed(mag: int, reserve: int) -> void:
 	ammo_changed.emit(mag, reserve)
 
 
-func _on_reload_started(_duration: float) -> void:
+func _on_reload_started(duration: float) -> void:
 	if active_viewmodel:
-		active_viewmodel.set_reloading(true)
+		active_viewmodel.trigger_reload(duration)
 	if active_weapon.data and _reload_sounds.has(active_weapon.data.category):
 		_reload_player.stream = _reload_sounds[active_weapon.data.category]
 		_reload_player.play()

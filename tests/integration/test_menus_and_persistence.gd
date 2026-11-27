@@ -201,7 +201,7 @@ func _test_character_persist_and_sleeves(tree: SceneTree, sm: Node) -> String:
 	var player := c.get_node("Player") as PlayerController
 	var rm := c.get_node("RoundManager") as RoundManager
 	var rig: ViewmodelRig = player.weapon_manager.active_viewmodel
-	var sleeve: MeshInstance3D = rig.get_node_or_null("Sleeve") as MeshInstance3D if rig != null else null
+	var sleeve: MeshInstance3D = rig.find_child("Sleeve", true, false) as MeshInstance3D if rig != null else null
 	var simone := load("res://resources/characters/simone_brooks.tres") as CharacterData
 	var color_ok: bool = false
 	if sleeve != null and sleeve.material_override is StandardMaterial3D and simone != null:

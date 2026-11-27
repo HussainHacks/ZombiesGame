@@ -10,4 +10,5 @@ archetype = "The Practical One"
 short_bio = "[Provisional] Municipal maintenance supervisor who knows how locks, wiring, and load-bearing walls fail under pressure. Keeps count of every spare board and exit route."
 ui_tint = Color(0.28, 0.72, 0.48, 1)
 sleeve_color = Color(0.18, 0.4, 0.28, 1)
+skin_tone = Color(0.78, 0.62, 0.50, 1)
 dialogue_pool_id = "pool_devon"

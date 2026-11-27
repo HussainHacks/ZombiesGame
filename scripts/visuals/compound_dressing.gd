@@ -10,12 +10,68 @@ const MAT_METAL := preload("res://resources/materials/mat_rusted_metal.tres")
 const MAT_DIRT := preload("res://resources/materials/mat_dirt_grass.tres")
 const MAT_FABRIC := preload("res://resources/materials/mat_fabric.tres")
 
+var _car_headlight: OmniLight3D = null
+var _car_headlight_mat: StandardMaterial3D = null
+var _gate_pivot: Node3D = null
+var _hanging_lamp: Node3D = null
+var _creak_boards: Array[Node3D] = []
+var _spark_particles: CPUParticles3D = null
+var _spark_light: OmniLight3D = null
+var _anim_t: float = 0.0
+var _spark_timer: float = 1.8
+
 
 func _ready() -> void:
 	_build_outdoor_ground_and_treeline()
 	_build_interior_props()
 	_build_yard_farm_clutter()
+	_build_phase13_props_and_animated()
 	_build_story_signs()
+
+
+func _process(delta: float) -> void:
+	_anim_t += delta
+	if _gate_pivot != null:
+		_gate_pivot.rotation.y = sin(_anim_t * 0.85) * 0.14 + 0.18
+	if _hanging_lamp != null:
+		_hanging_lamp.rotation.z = sin(_anim_t * 1.35) * 0.07
+		_hanging_lamp.rotation.x = cos(_anim_t * 0.95) * 0.03
+	for i: int in range(_creak_boards.size()):
+		var b: Node3D = _creak_boards[i]
+		if is_instance_valid(b):
+			b.rotation.z = sin(_anim_t * (1.7 + float(i) * 0.4)) * 0.025
+	if _car_headlight != null and _car_headlight_mat != null:
+		var pulse: float = sin(_anim_t * 17.0) * sin(_anim_t * 5.3)
+		var on_now: bool = pulse > -0.25
+		_car_headlight.light_energy = 1.35 if on_now else 0.15
+		_car_headlight_mat.emission_energy_multiplier = 2.4 if on_now else 0.2
+	_spark_timer -= delta
+	if _spark_timer <= 0.0:
+		_spark_timer = 2.4 + fmod(_anim_t * 1.37, 1.8)
+		if _spark_particles != null:
+			_spark_particles.restart()
+			_spark_particles.emitting = true
+		if _spark_light != null:
+			_spark_light.light_energy = 2.0
+	elif _spark_light != null and _spark_light.light_energy > 0.0:
+		_spark_light.light_energy = maxf(_spark_light.light_energy - delta * 14.0, 0.0)
+
+
+func _add_collider_box(parent: Node3D, body_name: String, pos: Vector3, sz: Vector3, surface: String, rot_y: float = 0.0) -> StaticBody3D:
+	var sb := StaticBody3D.new()
+	sb.name = body_name
+	sb.collision_layer = 1
+	sb.collision_mask = 0
+	sb.position = pos
+	sb.rotation.y = rot_y
+	sb.set_meta("surface", surface)
+	var cs := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = sz
+	cs.shape = shape
+	sb.add_child(cs)
+	parent.add_child(sb)
+	return sb
 
 
 func _add_box(parent: Node3D, pos: Vector3, sz: Vector3, mat: Material, rot_y: float = 0.0) -> MeshInstance3D:
@@ -165,6 +221,152 @@ func _build_yard_farm_clutter() -> void:
 	_add_cyl(tractor, Vector3(-0.65, 0.38, -0.85), 0.38, 0.28, MAT_CONCRETE, Vector3(0.0, 0.0, PI * 0.5))
 	_add_cyl(tractor, Vector3(0.65, 0.38, -0.85), 0.38, 0.28, MAT_CONCRETE, Vector3(0.0, 0.0, PI * 0.5))
 	_add_cyl(tractor, Vector3(0.35, 1.55, -0.8), 0.07, 0.7, MAT_METAL)
+
+
+func _build_phase13_props_and_animated() -> void:
+	# 1. Crashed Car in west courtyard (clear of SpawnYardLeft at -11,-15 and center lane)
+	var car := Node3D.new()
+	car.name = "CrashedCar"
+	car.position = Vector3(-7.6, 0.0, -15.4)
+	car.rotation.y = 0.42
+	add_child(car)
+	var car_mat := StandardMaterial3D.new()
+	car_mat.albedo_color = Color(0.22, 0.27, 0.32, 1.0)
+	car_mat.roughness = 0.55
+	car_mat.metallic = 0.45
+	_add_box(car, Vector3(0.0, 0.55, 0.0), Vector3(1.8, 0.65, 3.8), car_mat)
+	_add_box(car, Vector3(0.0, 1.12, -0.2), Vector3(1.55, 0.52, 1.9), car_mat)
+	for wx: float in [-0.92, 0.92]:
+		for wz: float in [-1.15, 1.15]:
+			_add_cyl(car, Vector3(wx, 0.34, wz), 0.34, 0.24, MAT_CONCRETE, Vector3(0.0, 0.0, PI * 0.5))
+	_add_collider_box(car, "CrashedCarBody", Vector3(0.0, 0.7, 0.0), Vector3(1.9, 1.4, 3.9), "metal")
+	_car_headlight_mat = StandardMaterial3D.new()
+	_car_headlight_mat.albedo_color = Color(1.0, 0.92, 0.7)
+	_car_headlight_mat.emission_enabled = true
+	_car_headlight_mat.emission = Color(1.0, 0.88, 0.55)
+	_car_headlight_mat.emission_energy_multiplier = 2.0
+	_add_box(car, Vector3(-0.6, 0.58, 1.92), Vector3(0.28, 0.16, 0.06), _car_headlight_mat)
+	_add_box(car, Vector3(0.6, 0.58, 1.92), Vector3(0.28, 0.16, 0.06), _car_headlight_mat)
+	_car_headlight = OmniLight3D.new()
+	_car_headlight.position = Vector3(0.0, 0.65, 2.3)
+	_car_headlight.light_color = Color(1.0, 0.9, 0.65)
+	_car_headlight.omni_range = 6.5
+	_car_headlight.shadow_enabled = false
+	car.add_child(_car_headlight)
+
+	# 2. Broken-down Truck in east outer yard (away from spawns/barricades)
+	var truck := Node3D.new()
+	truck.name = "BrokenTruck"
+	truck.position = Vector3(14.5, 0.0, 9.2)
+	truck.rotation.y = -0.35
+	add_child(truck)
+	_add_box(truck, Vector3(0.0, 0.95, 1.2), Vector3(2.0, 1.3, 1.6), MAT_METAL)
+	_add_box(truck, Vector3(0.0, 0.75, -1.0), Vector3(2.05, 0.8, 2.8), MAT_WOOD)
+	for twx: float in [-1.02, 1.02]:
+		for twz: float in [-1.6, 1.2]:
+			_add_cyl(truck, Vector3(twx, 0.44, twz), 0.44, 0.28, MAT_CONCRETE, Vector3(0.0, 0.0, PI * 0.5))
+	_add_collider_box(truck, "BrokenTruckBody", Vector3(0.0, 0.9, 0.0), Vector3(2.1, 1.8, 4.6), "metal")
+
+	# 3. Concrete Barriers & Sandbag Walls
+	for bx: float in [-3.8, 3.8]:
+		var bar := Node3D.new()
+		bar.name = "ConcreteBarrier"
+		bar.position = Vector3(bx, 0.0, -15.6)
+		add_child(bar)
+		_add_box(bar, Vector3(0.0, 0.45, 0.0), Vector3(2.2, 0.9, 0.55), MAT_CONCRETE)
+		_add_collider_box(bar, "ConcreteBarrierCol", Vector3(0.0, 0.45, 0.0), Vector3(2.2, 0.9, 0.55), "concrete")
+
+	for sz_pos: Vector3 in [Vector3(-14.2, 0.0, 8.5), Vector3(-14.2, 0.0, -8.5)]:
+		var sb_wall := Node3D.new()
+		sb_wall.name = "SandbagWall"
+		sb_wall.position = sz_pos
+		add_child(sb_wall)
+		for row: int in range(3):
+			for col: int in range(3):
+				_add_box(sb_wall, Vector3(float(col - 1) * 0.65, 0.16 + float(row) * 0.28, 0.0), Vector3(0.6, 0.26, 0.42), MAT_FABRIC, 0.04 * float(row))
+		_add_collider_box(sb_wall, "SandbagWallCol", Vector3(0.0, 0.45, 0.0), Vector3(2.0, 0.9, 0.5), "dirt")
+
+	# 4. Yard Wall Segments with Doorway (north-east courtyard)
+	var wall_door := Node3D.new()
+	wall_door.name = "YardWallDoorway"
+	wall_door.position = Vector3(8.5, 0.0, -16.6)
+	add_child(wall_door)
+	_add_box(wall_door, Vector3(-1.35, 1.2, 0.0), Vector3(1.5, 2.4, 0.35), MAT_CONCRETE)
+	_add_box(wall_door, Vector3(1.35, 1.2, 0.0), Vector3(1.5, 2.4, 0.35), MAT_CONCRETE)
+	_add_box(wall_door, Vector3(0.0, 2.15, 0.0), Vector3(1.2, 0.5, 0.35), MAT_CONCRETE)
+	_add_collider_box(wall_door, "YardWallLeftCol", Vector3(-1.35, 1.2, 0.0), Vector3(1.5, 2.4, 0.35), "concrete")
+	_add_collider_box(wall_door, "YardWallRightCol", Vector3(1.35, 1.2, 0.0), Vector3(1.5, 2.4, 0.35), "concrete")
+
+	# 5. Fence with Animated Swinging Gate (north center courtyard edge)
+	var fence_gate := Node3D.new()
+	fence_gate.name = "YardFenceGate"
+	fence_gate.position = Vector3(0.0, 0.0, -16.8)
+	add_child(fence_gate)
+	_add_box(fence_gate, Vector3(-1.2, 0.6, 0.0), Vector3(0.16, 1.2, 0.16), MAT_WOOD)
+	_add_box(fence_gate, Vector3(1.2, 0.6, 0.0), Vector3(0.16, 1.2, 0.16), MAT_WOOD)
+	_add_collider_box(fence_gate, "GatePostLeftCol", Vector3(-1.2, 0.6, 0.0), Vector3(0.2, 1.2, 0.2), "wood")
+	_add_collider_box(fence_gate, "GatePostRightCol", Vector3(1.2, 0.6, 0.0), Vector3(0.2, 1.2, 0.2), "wood")
+	_gate_pivot = Node3D.new()
+	_gate_pivot.name = "SwingingGatePivot"
+	_gate_pivot.position = Vector3(-1.12, 0.0, 0.0)
+	fence_gate.add_child(_gate_pivot)
+	_add_box(_gate_pivot, Vector3(1.05, 0.6, 0.0), Vector3(2.1, 0.95, 0.08), MAT_METAL)
+
+	# 6. Creaking loose boards on exterior fence/shed
+	for cb_pos: Vector3 in [Vector3(-13.8, 0.9, -16.7), Vector3(13.8, 0.9, -16.7)]:
+		var cb := Node3D.new()
+		cb.name = "CreakingBoard"
+		cb.position = cb_pos
+		add_child(cb)
+		_add_box(cb, Vector3(0.0, -0.25, 0.0), Vector3(0.18, 0.7, 0.05), MAT_WOOD)
+		_creak_boards.append(cb)
+
+	# 7. Sparking Electric Box on StartRoom west wall
+	var ebox := Node3D.new()
+	ebox.name = "ElectricBox"
+	ebox.position = Vector3(-5.72, 1.5, 2.2)
+	add_child(ebox)
+	_add_box(ebox, Vector3(0.0, 0.0, 0.0), Vector3(0.18, 0.55, 0.42), MAT_METAL)
+	_add_collider_box(ebox, "ElectricBoxCol", Vector3(0.0, 0.0, 0.0), Vector3(0.2, 0.55, 0.42), "metal")
+	_spark_particles = CPUParticles3D.new()
+	_spark_particles.emitting = false
+	_spark_particles.one_shot = true
+	_spark_particles.explosiveness = 1.0
+	_spark_particles.amount = 6
+	_spark_particles.lifetime = 0.25
+	_spark_particles.direction = Vector3(1.0, 0.2, 0.0)
+	_spark_particles.spread = 50.0
+	_spark_particles.initial_velocity_min = 1.5
+	_spark_particles.initial_velocity_max = 3.5
+	var sp_mat := StandardMaterial3D.new()
+	sp_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	sp_mat.albedo_color = Color(1.0, 0.85, 0.3)
+	var sp_mesh := SphereMesh.new()
+	sp_mesh.radius = 0.02
+	sp_mesh.height = 0.04
+	sp_mesh.material = sp_mat
+	_spark_particles.mesh = sp_mesh
+	ebox.add_child(_spark_particles)
+	_spark_light = OmniLight3D.new()
+	_spark_light.light_color = Color(0.75, 0.88, 1.0)
+	_spark_light.light_energy = 0.0
+	_spark_light.omni_range = 3.5
+	_spark_light.shadow_enabled = false
+	ebox.add_child(_spark_light)
+
+	# 8. Swaying Hanging Lamp in HallRoom
+	_hanging_lamp = Node3D.new()
+	_hanging_lamp.name = "HangingLamp"
+	_hanging_lamp.position = Vector3(0.0, 3.5, -6.0)
+	add_child(_hanging_lamp)
+	_add_cyl(_hanging_lamp, Vector3(0.0, -0.35, 0.0), 0.02, 0.7, MAT_METAL)
+	_add_cyl(_hanging_lamp, Vector3(0.0, -0.75, 0.0), 0.22, 0.18, MAT_METAL)
+	var bulb_mat := StandardMaterial3D.new()
+	bulb_mat.albedo_color = Color(1.0, 0.92, 0.72)
+	bulb_mat.emission_enabled = true
+	bulb_mat.emission = Color(1.0, 0.88, 0.62)
+	bulb_mat.emission_energy_multiplier = 2.0
+	_add_cyl(_hanging_lamp, Vector3(0.0, -0.84, 0.0), 0.08, 0.1, bulb_mat)
 
 
 func _build_story_signs() -> void:

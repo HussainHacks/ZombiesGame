@@ -10,4 +10,5 @@ archetype = "The Overconfident One"
 short_bio = "[Provisional] Ex-collegiate sprinter and precision shooter who treats every horde like a highlight reel. Never doubts a risky push, even on low ammo."
 ui_tint = Color(0.86, 0.28, 0.34, 1)
 sleeve_color = Color(0.56, 0.16, 0.2, 1)
+skin_tone = Color(0.45, 0.28, 0.18, 1)
 dialogue_pool_id = "pool_simone"

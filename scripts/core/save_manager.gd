@@ -52,6 +52,11 @@ static func create_default_data() -> Dictionary:
 			"controller_invert_y": false,
 			"vibration_enabled": true,
 			"vibration_intensity": 1.0,
+			"movement_profile": "riposte",
+			"camera_bob_intensity": 1.0,
+			"weapon_bob_intensity": 1.0,
+			"camera_shake_intensity": 1.0,
+			"landing_dip_intensity": 1.0,
 		},
 		"progression": {
 			"selected_character_id": DEFAULT_CHARACTER_ID,
@@ -84,6 +89,9 @@ func load_save() -> void:
 	var raw_q: String = str(s_dict.get("quality_preset", def_s["quality_preset"])).to_lower()
 	if raw_q != "low" and raw_q != "high":
 		raw_q = str(def_s["quality_preset"])
+	var raw_mp: String = str(s_dict.get("movement_profile", def_s["movement_profile"])).to_lower()
+	if raw_mp != "classic" and raw_mp != "riposte":
+		raw_mp = "riposte"
 	data["settings"] = {
 		"master_volume": clampf(float(s_dict.get("master_volume", def_s["master_volume"])), 0.0, 1.0),
 		"music_volume": clampf(float(s_dict.get("music_volume", def_s["music_volume"])), 0.0, 1.0),
@@ -101,6 +109,11 @@ func load_save() -> void:
 		"controller_invert_y": bool(s_dict.get("controller_invert_y", def_s["controller_invert_y"])),
 		"vibration_enabled": bool(s_dict.get("vibration_enabled", def_s["vibration_enabled"])),
 		"vibration_intensity": clampf(float(s_dict.get("vibration_intensity", def_s["vibration_intensity"])), 0.0, 1.0),
+		"movement_profile": raw_mp,
+		"camera_bob_intensity": clampf(float(s_dict.get("camera_bob_intensity", def_s["camera_bob_intensity"])), 0.0, 1.0),
+		"weapon_bob_intensity": clampf(float(s_dict.get("weapon_bob_intensity", def_s["weapon_bob_intensity"])), 0.0, 1.0),
+		"camera_shake_intensity": clampf(float(s_dict.get("camera_shake_intensity", def_s["camera_shake_intensity"])), 0.0, 1.0),
+		"landing_dip_intensity": clampf(float(s_dict.get("landing_dip_intensity", def_s["landing_dip_intensity"])), 0.0, 1.0),
 	}
 
 	var raw_prog: Variant = root_dict.get("progression", {})

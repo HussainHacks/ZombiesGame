@@ -24,8 +24,15 @@ const FPS_CAP_OPTIONS := [60, 120, 144, 0]
 @onready var back_btn: Button = $VBox/ButtonsRow/BackButton
 
 var general_tab_btn: Button = null
+var gameplay_tab_btn: Button = null
 var controls_tab_btn: Button = null
 var fps_cap_btn: Button = null
+var gameplay_box: VBoxContainer = null
+var move_profile_btn: Button = null
+var cam_bob_slider: HSlider = null
+var wpn_bob_slider: HSlider = null
+var cam_shake_slider: HSlider = null
+var land_dip_slider: HSlider = null
 var controls_box: VBoxContainer = null
 var ctrl_sens_slider: HSlider = null
 var ctrl_dz_slider: HSlider = null
@@ -103,10 +110,14 @@ func _build_tabs_and_controls_ui() -> void:
 	general_tab_btn = Button.new()
 	general_tab_btn.text = "General"
 	general_tab_btn.pressed.connect(func() -> void: _set_tab("general"))
+	gameplay_tab_btn = Button.new()
+	gameplay_tab_btn.text = "Gameplay"
+	gameplay_tab_btn.pressed.connect(func() -> void: _set_tab("gameplay"))
 	controls_tab_btn = Button.new()
 	controls_tab_btn.text = "Controls"
 	controls_tab_btn.pressed.connect(func() -> void: _set_tab("controls"))
 	tab_row.add_child(general_tab_btn)
+	tab_row.add_child(gameplay_tab_btn)
 	tab_row.add_child(controls_tab_btn)
 	vbox.add_child(tab_row)
 	vbox.move_child(tab_row, 1)
@@ -126,6 +137,40 @@ func _build_tabs_and_controls_ui() -> void:
 	var btn_idx: int = vbox.get_node("ButtonsRow").get_index()
 	vbox.move_child(fps_row, btn_idx)
 	_general_rows.append(fps_row)
+
+	# Gameplay tab container
+	gameplay_box = VBoxContainer.new()
+	gameplay_box.name = "GameplayTab"
+	gameplay_box.add_theme_constant_override("separation", 6)
+	gameplay_box.visible = false
+	vbox.add_child(gameplay_box)
+	vbox.move_child(gameplay_box, btn_idx)
+
+	var mp_row := HBoxContainer.new()
+	var mp_lbl := Label.new()
+	mp_lbl.text = "Movement Profile"
+	mp_lbl.custom_minimum_size = Vector2(180, 0)
+	move_profile_btn = Button.new()
+	move_profile_btn.custom_minimum_size = Vector2(160, 0)
+	move_profile_btn.pressed.connect(func() -> void:
+		var sm: Node = _sm()
+		if sm == null:
+			return
+		var cur: String = str(sm.get("movement_profile"))
+		sm.call("set_movement_profile", "classic" if cur == "riposte" else "riposte")
+		sync_from_manager())
+	mp_row.add_child(mp_lbl)
+	mp_row.add_child(move_profile_btn)
+	gameplay_box.add_child(mp_row)
+
+	cam_bob_slider = _add_slider_row(gameplay_box, "Camera Bob", 0.0, 1.0, 0.05, func(v: float) -> void:
+		if not _syncing: _sm().call("set_camera_bob_intensity", v))
+	wpn_bob_slider = _add_slider_row(gameplay_box, "Weapon Bob/Sway", 0.0, 1.0, 0.05, func(v: float) -> void:
+		if not _syncing: _sm().call("set_weapon_bob_intensity", v))
+	cam_shake_slider = _add_slider_row(gameplay_box, "Camera Shake", 0.0, 1.0, 0.05, func(v: float) -> void:
+		if not _syncing: _sm().call("set_camera_shake_intensity", v))
+	land_dip_slider = _add_slider_row(gameplay_box, "Landing Dip", 0.0, 1.0, 0.05, func(v: float) -> void:
+		if not _syncing: _sm().call("set_landing_dip_intensity", v))
 
 	# Controls tab container
 	controls_box = VBoxContainer.new()
@@ -203,7 +248,7 @@ func _build_tabs_and_controls_ui() -> void:
 	tvbox.add_child(btn_grid)
 	controls_box.add_child(test_panel)
 
-	UiFocusHelper.wire_horizontal([general_tab_btn, controls_tab_btn])
+	UiFocusHelper.wire_horizontal([general_tab_btn, gameplay_tab_btn, controls_tab_btn])
 	UiFocusHelper.wire_horizontal([reset_btn, back_btn])
 
 
@@ -246,19 +291,34 @@ func _add_diag_bar(parent: Control, label_text: String, min_v: float, max_v: flo
 func _set_tab(tab_name: String) -> void:
 	_active_tab = tab_name
 	var is_ctrl: bool = (tab_name == "controls")
+	var is_gp: bool = (tab_name == "gameplay")
 	for r: Control in _general_rows:
-		r.visible = not is_ctrl
+		r.visible = (not is_ctrl and not is_gp)
+	if gameplay_box != null:
+		gameplay_box.visible = is_gp
 	if controls_box != null:
 		controls_box.visible = is_ctrl
 	_wire_tab_focus()
 	if is_ctrl:
 		UiFocusHelper.grab_safe(ctrl_sens_slider)
+	elif is_gp:
+		UiFocusHelper.grab_safe(move_profile_btn)
 	else:
 		UiFocusHelper.grab_safe(general_tab_btn)
 
 
 func _wire_tab_focus() -> void:
-	if _active_tab == "controls":
+	if _active_tab == "gameplay":
+		UiFocusHelper.wire_vertical([
+			gameplay_tab_btn,
+			move_profile_btn,
+			cam_bob_slider,
+			wpn_bob_slider,
+			cam_shake_slider,
+			land_dip_slider,
+			back_btn,
+		])
+	elif _active_tab == "controls":
 		UiFocusHelper.wire_vertical([
 			controls_tab_btn,
 			ctrl_sens_slider,
@@ -361,6 +421,16 @@ func sync_from_manager() -> void:
 		vib_enable_check.button_pressed = bool(sm.get("vibration_enabled"))
 	if vib_int_slider != null:
 		vib_int_slider.value = float(sm.get("vibration_intensity"))
+	if move_profile_btn != null:
+		move_profile_btn.text = "Classic" if str(sm.get("movement_profile")) == "classic" else "Riposte-style"
+	if cam_bob_slider != null:
+		cam_bob_slider.value = float(sm.get("camera_bob_intensity"))
+	if wpn_bob_slider != null:
+		wpn_bob_slider.value = float(sm.get("weapon_bob_intensity"))
+	if cam_shake_slider != null:
+		cam_shake_slider.value = float(sm.get("camera_shake_intensity"))
+	if land_dip_slider != null:
+		land_dip_slider.value = float(sm.get("landing_dip_intensity"))
 	_syncing = false
 
 

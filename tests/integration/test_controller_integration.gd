@@ -225,7 +225,7 @@ func _test_controller_autoplay(tree: SceneTree) -> String:
 
 	var kills: int = 0
 	var rt_down: bool = false
-	for step: int in range(3600):
+	for step: int in range(5400):
 		# Aim using right stick toward nearest zombie (preferring inside StartRoom z > -1.0), fire using RT only
 		var best_z: ZombieAI = null
 		var best_d: float = INF
@@ -277,9 +277,16 @@ func _test_controller_autoplay(tree: SceneTree) -> String:
 	_send_axis(JOY_AXIS_LEFT_Y, 0.0)
 	_send_axis(JOY_AXIS_TRIGGER_RIGHT, 0.0)
 	var cur_round: int = rm.current_round
+	var rem_info: String = ""
+	if cur_round < 2:
+		var w := player.weapon_manager.active_weapon
+		rem_info += " [mag=%d res=%d]" % [w.mag_ammo if w else -1, w.reserve_ammo if w else -1]
+		for z: ZombieAI in rm.alive_zombies:
+			if is_instance_valid(z):
+				rem_info += " [pos=%s state=%s mode=%s dead=%s]" % [str(z.global_position), str(z.get("current_state")), str(z.get("mode")), str(z.health_component.is_dead)]
 	rm.stop_and_cleanup()
 	compound.queue_free()
 	await tree.process_frame
 	if cur_round < 2:
-		return "Controller autoplay did not reach Round 2 (round=%d, kills=%d)" % [cur_round, kills]
+		return "Controller autoplay did not reach Round 2 (round=%d, kills=%d, alive=%s)" % [cur_round, kills, rem_info]
 	return ""

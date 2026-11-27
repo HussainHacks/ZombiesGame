@@ -10,4 +10,5 @@ archetype = "The Unpredictable One"
 short_bio = "[Provisional] Independent sound engineer and night-shift tinkerer who improvises wild solutions mid-fight. Nobody—including her—knows her next move until she makes it."
 ui_tint = Color(0.62, 0.42, 0.92, 1)
 sleeve_color = Color(0.36, 0.22, 0.56, 1)
+skin_tone = Color(0.66, 0.46, 0.34, 1)
 dialogue_pool_id = "pool_tasha"
