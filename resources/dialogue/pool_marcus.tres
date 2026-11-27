@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="DialoguePool" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/dialogue/dialogue_pool.gd" id="1_dp"]
+
+[resource]
+script = ExtResource("1_dp")
+pool_id = "pool_marcus"
+categories = {
+"bought_perk": ["Tastes like battery acid and bad decisions—I love it.", "If this glow wears off, I want a full refund.", "Two sips and my pulse sounds like a drumline!", "Bottoms up—tastes like neon and questionable life choices!"],
+"bought_weapon": ["Okay, now we are talking—no more gentle warnings.", "Bought myself an argument-ender. Step right up!", "Fresh steel off the wall—don't touch the paint!", "Paid retail for this, so nobody scratch it!", "New piece, full mag, zero patience left!"],
+"box_bad": ["Wait, that crate just robbed me in broad daylight!", "I paid nine-fifty for a paperweight? Seriously?", "Box said 'surprise' and handed me a butter knife!", "Nine-fifty down the hatch for a glorified stapler!"],
+"box_good": ["Ooh, shiny! Somebody tell the horde I upgraded.", "Finally, the mystery box respects my talent!", "Jackpot! Somebody cue the confetti cannon!", "Now that is VIP service from a wooden crate!"],
+"door_opened": ["More rooms, more problems, zero rent reduction.", "Opening doors like I actually want to meet the neighbors.", "Paid good points to see what's biting in here!", "New doorway open—anybody order room service?"],
+"high_round": ["Okay, nobody told me the afterparty got this crowded!", "Wait, how many cousins did these things invite?!", "Late-night rush hour and nobody brought snacks!", "Round's getting thick—somebody check the fire code!"],
+"kill_streak": ["Boom, boom, boom—somebody book me a stadium!", "Sit down! Next! I got all night, actually no I don't!", "Three-piece combo, hold the biting!", "Clean sweep! Somebody write that down!", "Anybody else want a ticket to the floor?!"],
+"low_health": ["Whoa, okay, vision's tunneling—somebody call my agent!", "I am one sneeze away from a closed casket!", "Seriously low on luck right now—back off!", "Running on fumes and pure stubbornness here!"],
+"out_of_ammo": ["Click?! Why does empty sound so loud right now?!", "Zero bullets! Time to negotiate with pure charm!", "All out of brass—anybody got spare change?!", "Dry click! Who forgot to pack extra mags?!"],
+"player_died": ["Tell the crowd... I killed at the late show...", "Wait—no encore? That's cold...", "Lights out... tough room tonight...", "Closing act... somebody get the lights..."],
+"reloading": ["Hold on, hold on, timeout—let me feed the mag!", "Reloading! Please respect the courtesy pause!", "Fresh clip going in—don't rush the stage!", "Wait a second, my thumbs are working overtime!", "Swapping mags! Everybody hold your applause!"],
+"round_end": ["Whew! Everybody still got all ten fingers?", "And that's intermission—tip your host on the way out.", "House lights up—somebody sweep the porch!", "We survived another set! Don't get comfortable!", "Break time! Nobody touch my ammo crate!"],
+"round_start": ["Alright, round two of nobody-asked-for-this. Let's move!", "Here they come again—act like you're busy!", "Doors shaking again—showtime, folks!", "New wave! Same bad neighborhood, worse manners!", "Curtain's up! Try not to become the appetizer!"],
+"took_damage": ["Hey! Personal space! Did I invite you to bite me?!", "Ow! Watch the jacket, that cost more than this block!", "Whoa, hands off the merchandise!", "Ouch! Do I look like a free sample?!", "Hey, keep your teeth in your own zip code!"],
+"zombie_spotted": ["Uh, we got a fast walker at twelve o'clock!", "Oh look, another fan who doesn't understand boundaries!", "Heads up—ugly customer coming down the aisle!", "Look who wandered in without a cover charge!", "Incoming! And he looks mad about the parking!"]
+}

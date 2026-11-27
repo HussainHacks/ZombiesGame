@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="GameplayConfig" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/gameplay_config.gd" id="1_gc"]
+
+[resource]
+script = ExtResource("1_gc")
+max_weapons = 3
+max_upgrade_tier = 1
+max_perks = 4
+mystery_box_cost = 950
+box_spin_duration = 3.0
+box_offer_duration = 8.0
+box_cooldown_duration = 2.0
+box_min_uses_before_relocate = 3
+box_jam_chance = 0.25
+box_pity_max_uses = 6
+box_location_count = 3

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="CharacterData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/characters/character_data.gd" id="1_char"]
+
+[resource]
+script = ExtResource("1_char")
+id = "tasha_monroe"
+display_name = "Tasha Monroe"
+archetype = "The Unpredictable One"
+short_bio = "[Provisional] Independent sound engineer and night-shift tinkerer who improvises wild solutions mid-fight. Nobody—including her—knows her next move until she makes it."
+ui_tint = Color(0.62, 0.42, 0.92, 1)
+sleeve_color = Color(0.36, 0.22, 0.56, 1)
+dialogue_pool_id = "pool_tasha"

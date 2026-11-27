@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponUpgradeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/weapon_upgrade_data.gd" id="1_upg"]
+
+[resource]
+script = ExtResource("1_upg")
+upgrade_cost = 5000
+ammo_cost = 2500
+damage_multiplier = 2.0
+headshot_multiplier_bonus = 1.15
+mag_size_multiplier = 1.5
+reserve_ammo_multiplier = 1.5
+fire_rate_multiplier = 1.15
+name_prefix = "Forged "
+emissive_tint = Color(0.25, 0.85, 1, 1)
+processing_duration = 3.0
+ready_timeout = 10.0

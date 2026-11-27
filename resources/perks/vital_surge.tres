@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="PerkData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/perks/perk_data.gd" id="1_perk"]
+
+[resource]
+script = ExtResource("1_perk")
+perk_id = &"vital_surge"
+display_name = "Vital Surge"
+short_label = "REG"
+description = "0.55x Regen Delay and 1.60x Regen Rate."
+cost = 1750
+accent_color = Color(0.24, 0.83, 0.66, 1)
+current_health_bonus = 0.0
+stat_modifiers = Array[Dictionary]([{
+"op": 1,
+"stat": &"regen_delay_multiplier",
+"value": 0.55
+}, {
+"op": 1,
+"stat": &"regen_rate_multiplier",
+"value": 1.6
+}])

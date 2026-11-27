@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1_data"]
+[ext_resource type="PackedScene" path="res://scenes/weapons/viewmodel_rifle.tscn" id="2_vm"]
+
+[resource]
+script = ExtResource("1_data")
+display_name = "Strider-556"
+category = 1
+fire_mode = 1
+rarity = 1
+box_weight = 1.2
+cost = 1200
+ammo_cost = 600
+damage = 22.0
+headshot_multiplier = 2.0
+pellet_count = 1
+fire_rate = 10.5
+pump_cycle_delay = 0.0
+range = 120.0
+magazine_size = 30
+reserve_ammo_max = 180
+reload_time = 2.1
+spread_hip = 2.4
+spread_aim = 0.35
+spread_per_shot = 0.55
+spread_max = 8.5
+spread_recovery_rate = 6.5
+recoil_pitch = 1.2
+recoil_yaw_range = 0.85
+move_speed_multiplier = 0.9
+aim_fov_multiplier = 0.75
+viewmodel_scene = ExtResource("2_vm")

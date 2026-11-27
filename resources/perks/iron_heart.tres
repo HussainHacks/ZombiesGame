@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="PerkData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/perks/perk_data.gd" id="1_perk"]
+
+[resource]
+script = ExtResource("1_perk")
+perk_id = &"iron_heart"
+display_name = "Iron Heart"
+short_label = "HP"
+description = "+50 Max Health and restores 50 Health."
+cost = 2500
+accent_color = Color(0.85, 0.26, 0.26, 1)
+current_health_bonus = 50.0
+stat_modifiers = Array[Dictionary]([{
+"op": 0,
+"stat": &"max_health",
+"value": 50.0
+}])

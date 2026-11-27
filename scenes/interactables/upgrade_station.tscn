@@ -1,0 +1,36 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/interactables/upgrade_station.gd" id="1_upg"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_col"]
+size = Vector3(1.8, 1.4, 1.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_base"]
+size = Vector3(1.7, 1.0, 1.0)
+
+[sub_resource type="BoxMesh" id="BoxMesh_glow"]
+size = Vector3(1.5, 0.14, 0.85)
+
+[node name="UpgradeStation" type="StaticBody3D" groups=["upgrade_station"]]
+collision_layer = 16
+collision_mask = 0
+script = ExtResource("1_upg")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0)
+shape = SubResource("BoxShape3D_col")
+
+[node name="BenchMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+mesh = SubResource("BoxMesh_base")
+
+[node name="GlowMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.06, 0)
+mesh = SubResource("BoxMesh_glow")
+
+[node name="StatusLabel" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
+text = "FORGE BENCH"
+font_size = 44
+outline_size = 8
+billboard = 1

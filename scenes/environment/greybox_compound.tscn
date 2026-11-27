@@ -1,0 +1,692 @@
+[gd_scene load_steps=34 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="1_player"]
+[ext_resource type="PackedScene" path="res://scenes/ui/debug_overlay.tscn" id="2_debug"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="3_hud"]
+[ext_resource type="PackedScene" path="res://scenes/ui/nav_debug_overlay.tscn" id="4_navdbg"]
+[ext_resource type="PackedScene" path="res://scenes/ui/game_over_screen.tscn" id="5_go"]
+[ext_resource type="PackedScene" path="res://scenes/interactables/barricade.tscn" id="6_barricade"]
+[ext_resource type="PackedScene" path="res://scenes/interactables/door.tscn" id="7_door"]
+[ext_resource type="Script" path="res://scripts/core/nav_region_baker.gd" id="8_navbaker"]
+[ext_resource type="Script" path="res://scripts/core/zone_manager.gd" id="9_zm"]
+[ext_resource type="Script" path="res://scripts/core/zone.gd" id="10_zone"]
+[ext_resource type="Script" path="res://scripts/rounds/round_manager.gd" id="11_rm"]
+[ext_resource type="Resource" path="res://resources/rounds/default_rounds.tres" id="12_rc"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/zombie_standard.tscn" id="13_zombie"]
+[ext_resource type="Script" path="res://scripts/economy/points_manager.gd" id="14_pm"]
+[ext_resource type="Resource" path="res://resources/configuration/economy_config.tres" id="15_ec"]
+[ext_resource type="Script" path="res://scripts/core/arena_controller.gd" id="16_ac"]
+[ext_resource type="Script" path="res://scripts/weapons/ammo_pickup.gd" id="17_ammo"]
+[ext_resource type="Script" path="res://scripts/interactables/weapon_wall_buy.gd" id="18_wb"]
+[ext_resource type="Resource" path="res://resources/weapons/assault_rifle.tres" id="19_rifle"]
+[ext_resource type="Resource" path="res://resources/weapons/heavy_pistol.tres" id="20_hp"]
+[ext_resource type="Resource" path="res://resources/weapons/smg.tres" id="21_smg"]
+[ext_resource type="Resource" path="res://resources/weapons/auto_shotgun.tres" id="22_asg"]
+[ext_resource type="PackedScene" path="res://scenes/interactables/mystery_box.tscn" id="23_mbox"]
+[ext_resource type="Script" path="res://scripts/interactables/mystery_box_manager.gd" id="24_mbm"]
+[ext_resource type="PackedScene" path="res://scenes/interactables/perk_machine.tscn" id="25_perkm"]
+[ext_resource type="Resource" path="res://resources/perks/vital_surge.tres" id="26_pvital"]
+[ext_resource type="Resource" path="res://resources/perks/street_runner.tres" id="27_prun"]
+[ext_resource type="Resource" path="res://resources/perks/iron_heart.tres" id="28_piron"]
+[ext_resource type="Resource" path="res://resources/perks/deadeye_tonic.tres" id="29_pdead"]
+[ext_resource type="Resource" path="res://resources/perks/quick_hands.tres" id="30_pquick"]
+[ext_resource type="Resource" path="res://resources/perks/heavy_caliber.tres" id="31_pheavy"]
+[ext_resource type="PackedScene" path="res://scenes/interactables/upgrade_station.tscn" id="32_forge"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="33_pause"]
+[ext_resource type="Material" path="res://resources/materials/mat_concrete.tres" id="34_mat_conc"]
+[ext_resource type="Script" path="res://scripts/visuals/flicker_light.gd" id="35_flicker"]
+[ext_resource type="Script" path="res://scripts/visuals/compound_dressing.gd" id="36_dressing"]
+[ext_resource type="Script" path="res://scripts/audio/ambience_manager.gd" id="37_ambience"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_compound"]
+sky_top_color = Color(0.015, 0.02, 0.04, 1)
+sky_horizon_color = Color(0.04, 0.05, 0.085, 1)
+ground_bottom_color = Color(0.01, 0.012, 0.018, 1)
+ground_horizon_color = Color(0.03, 0.04, 0.065, 1)
+
+[sub_resource type="Sky" id="Sky_compound"]
+sky_material = SubResource("ProceduralSkyMaterial_compound")
+
+[sub_resource type="Environment" id="Environment_compound"]
+background_mode = 2
+sky = SubResource("Sky_compound")
+ambient_light_source = 2
+ambient_light_color = Color(0.11, 0.14, 0.22, 1)
+ambient_light_energy = 0.28
+tonemap_mode = 2
+tonemap_exposure = 1.08
+glow_enabled = true
+glow_intensity = 0.45
+fog_enabled = true
+fog_mode = 1
+fog_light_color = Color(0.05, 0.07, 0.11, 1)
+fog_density = 0.022
+fog_sky_affect = 0.75
+fog_depth_begin = 5.0
+fog_depth_end = 42.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
+albedo_color = Color(0.22, 0.23, 0.25, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wall"]
+albedo_color = Color(0.32, 0.34, 0.38, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ammo"]
+albedo_color = Color(0.85, 0.72, 0.15, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ammo"]
+size = Vector3(0.8, 0.5, 0.5)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ammo"]
+size = Vector3(0.8, 0.5, 0.5)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wallbuy"]
+albedo_color = Color(0.22, 0.45, 0.78, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wallbuy"]
+size = Vector3(0.25, 0.45, 1.1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_wallbuy"]
+size = Vector3(0.35, 0.55, 1.2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bulb_warm"]
+albedo_color = Color(1, 0.85, 0.55, 1)
+emission_enabled = true
+emission = Color(1, 0.72, 0.38, 1)
+emission_energy_multiplier = 2.6
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bulb_cool"]
+albedo_color = Color(0.9, 0.94, 1, 1)
+emission_enabled = true
+emission = Color(0.75, 0.85, 1, 1)
+emission_energy_multiplier = 2.4
+
+[sub_resource type="SphereMesh" id="SphereMesh_bulb"]
+radius = 0.11
+height = 0.22
+
+[sub_resource type="BoxMesh" id="BoxMesh_Floor"]
+size = Vector3(36, 1, 36)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_Floor"]
+size = Vector3(36, 1, 36)
+
+[sub_resource type="BoxMesh" id="BoxMesh_PerimeterNorth"]
+size = Vector3(38, 4, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_PerimeterNorth"]
+size = Vector3(38, 4, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_PerimeterSouth"]
+size = Vector3(38, 4, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_PerimeterSouth"]
+size = Vector3(38, 4, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_PerimeterWest"]
+size = Vector3(1, 4, 36)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_PerimeterWest"]
+size = Vector3(1, 4, 36)
+
+[sub_resource type="BoxMesh" id="BoxMesh_PerimeterEast"]
+size = Vector3(1, 4, 36)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_PerimeterEast"]
+size = Vector3(1, 4, 36)
+
+[sub_resource type="BoxMesh" id="BoxMesh_SouthRoomWall"]
+size = Vector3(12.4, 3.6, 0.4)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_SouthRoomWall"]
+size = Vector3(12.4, 3.6, 0.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_WallStartToHallLeft"]
+size = Vector3(5.1, 3.6, 0.4)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_WallStartToHallLeft"]
+size = Vector3(5.1, 3.6, 0.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_WallStartToHallRight"]
+size = Vector3(5.1, 3.6, 0.4)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_WallStartToHallRight"]
+size = Vector3(5.1, 3.6, 0.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_WallHallToYardLeft"]
+size = Vector3(5.1, 3.6, 0.4)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_WallHallToYardLeft"]
+size = Vector3(5.1, 3.6, 0.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_WallHallToYardRight"]
+size = Vector3(5.1, 3.6, 0.4)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_WallHallToYardRight"]
+size = Vector3(5.1, 3.6, 0.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_WestWallSeg1"]
+size = Vector3(0.4, 3.6, 5.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_WestWallSeg1"]
+size = Vector3(0.4, 3.6, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_WestWallSeg2"]
+size = Vector3(0.4, 3.6, 10.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_WestWallSeg2"]
+size = Vector3(0.4, 3.6, 10.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_WestWallSeg3"]
+size = Vector3(0.4, 3.6, 5.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_WestWallSeg3"]
+size = Vector3(0.4, 3.6, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_EastWallSeg1"]
+size = Vector3(0.4, 3.6, 5.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_EastWallSeg1"]
+size = Vector3(0.4, 3.6, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_EastWallSeg2"]
+size = Vector3(0.4, 3.6, 10.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_EastWallSeg2"]
+size = Vector3(0.4, 3.6, 10.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_EastWallSeg3"]
+size = Vector3(0.4, 3.6, 5.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_EastWallSeg3"]
+size = Vector3(0.4, 3.6, 5.2)
+
+[sub_resource type="NavigationMesh" id="NavigationMesh_compound"]
+geometry_parsed_geometry_type = 1
+cell_size = 0.14
+cell_height = 0.1
+agent_height = 1.8
+agent_radius = 0.42
+agent_max_climb = 0.3
+agent_max_slope = 45.0
+
+[node name="GreyboxCompound" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_compound")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 0, 14, 0)
+light_color = Color(0.55, 0.66, 0.9, 1)
+light_energy = 0.35
+shadow_enabled = false
+
+[node name="NavRegion" type="NavigationRegion3D" parent="."]
+navigation_mesh = SubResource("NavigationMesh_compound")
+script = ExtResource("8_navbaker")
+
+[node name="Floor" type="StaticBody3D" parent="NavRegion"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+collision_layer = 1
+collision_mask = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NavRegion/Floor"]
+material_override = ExtResource("34_mat_conc")
+mesh = SubResource("BoxMesh_Floor")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavRegion/Floor"]
+shape = SubResource("BoxShape3D_Floor")
+
+[node name="PerimeterNorth" type="StaticBody3D" parent="NavRegion"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -18.5)
+collision_layer = 1
+collision_mask = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NavRegion/PerimeterNorth"]
+material_override = ExtResource("34_mat_conc")
+mesh = SubResource("BoxMesh_PerimeterNorth")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavRegion/PerimeterNorth"]
+shape = SubResource("BoxShape3D_PerimeterNorth")
+
+[node name="PerimeterSouth" type="StaticBody3D" parent="NavRegion"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 18.5)
+collision_layer = 1
+collision_mask = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NavRegion/PerimeterSouth"]
+material_override = ExtResource("34_mat_conc")
+mesh = SubResource("BoxMesh_PerimeterSouth")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavRegion/PerimeterSouth"]
+shape = SubResource("BoxShape3D_PerimeterSouth")
+
+[node name="PerimeterWest" type="StaticBody3D" parent="NavRegion"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.5, 2, 0)
+collision_layer = 1
+collision_mask = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NavRegion/PerimeterWest"]
+material_override = ExtResource("34_mat_conc")
+mesh = SubResource("BoxMesh_PerimeterWest")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavRegion/PerimeterWest"]
+shape = SubResource("BoxShape3D_PerimeterWest")
+
+[node name="PerimeterEast" type="StaticBody3D" parent="NavRegion"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.5, 2, 0)
+collision_layer = 1
+collision_mask = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NavRegion/PerimeterEast"]
+material_override = ExtResource("34_mat_conc")
+mesh = SubResource("BoxMesh_PerimeterEast")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavRegion/PerimeterEast"]
+shape = SubResource("BoxShape3D_PerimeterEast")
+
+[node name="SouthRoomWall" type="StaticBody3D" parent="NavRegion"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8, 12.2)
+collision_layer = 1
+collision_mask = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NavRegion/SouthRoomWall"]
+material_override = ExtResource("34_mat_conc")
+mesh = SubResource("BoxMesh_SouthRoomWall")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavRegion/SouthRoomWall"]
+shape = SubResource("BoxShape3D_SouthRoomWall")
+
+[node name="WallStartToHallLeft" type="StaticBody3D" parent="NavRegion"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.65, 1.8, 0)
+collision_layer = 1
+collision_mask = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NavRegion/WallStartToHallLeft"]
+material_override = ExtResource("34_mat_conc")
+mesh = SubResource("BoxMesh_WallStartToHallLeft")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavRegion/WallStartToHallLeft"]
+shape = SubResource("BoxShape3D_WallStartToHallLeft")
+
+[node name="WallStartToHallRight" type="StaticBody3D" parent="NavRegion"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.65, 1.8, 0)
+collision_layer = 1
+collision_mask = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NavRegion/WallStartToHallRight"]
+material_override = ExtResource("34_mat_conc")
+mesh = SubResource("BoxMesh_WallStartToHallRight")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavRegion/WallStartToHallRight"]
+shape = SubResource("BoxShape3D_WallStartToHallRight")
+
+[node name="WallHallToYardLeft" type="StaticBody3D" parent="NavRegion"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.65, 1.8, -12)
+collision_layer = 1
+collision_mask = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NavRegion/WallHallToYardLeft"]
+material_override = ExtResource("34_mat_conc")
+mesh = SubResource("BoxMesh_WallHallToYardLeft")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavRegion/WallHallToYardLeft"]
+shape = SubResource("BoxShape3D_WallHallToYardLeft")
+
+[node name="WallHallToYardRight" type="StaticBody3D" parent="NavRegion"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.65, 1.8, -12)
+collision_layer = 1
+collision_mask = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NavRegion/WallHallToYardRight"]
+material_override = ExtResource("34_mat_conc")
+mesh = SubResource("BoxMesh_WallHallToYardRight")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavRegion/WallHallToYardRight"]
+shape = SubResource("BoxShape3D_WallHallToYardRight")
+
+[node name="WestWallSeg1" type="StaticBody3D" parent="NavRegion"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 1.8, 9.5)
+collision_layer = 1
+collision_mask = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NavRegion/WestWallSeg1"]
+material_override = ExtResource("34_mat_conc")
+mesh = SubResource("BoxMesh_WestWallSeg1")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavRegion/WestWallSeg1"]
+shape = SubResource("BoxShape3D_WestWallSeg1")
+
+[node name="WestWallSeg2" type="StaticBody3D" parent="NavRegion"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 1.8, 0)
+collision_layer = 1
+collision_mask = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NavRegion/WestWallSeg2"]
+material_override = ExtResource("34_mat_conc")
+mesh = SubResource("BoxMesh_WestWallSeg2")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavRegion/WestWallSeg2"]
+shape = SubResource("BoxShape3D_WestWallSeg2")
+
+[node name="WestWallSeg3" type="StaticBody3D" parent="NavRegion"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 1.8, -9.5)
+collision_layer = 1
+collision_mask = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NavRegion/WestWallSeg3"]
+material_override = ExtResource("34_mat_conc")
+mesh = SubResource("BoxMesh_WestWallSeg3")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavRegion/WestWallSeg3"]
+shape = SubResource("BoxShape3D_WestWallSeg3")
+
+[node name="EastWallSeg1" type="StaticBody3D" parent="NavRegion"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 1.8, 9.5)
+collision_layer = 1
+collision_mask = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NavRegion/EastWallSeg1"]
+material_override = ExtResource("34_mat_conc")
+mesh = SubResource("BoxMesh_EastWallSeg1")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavRegion/EastWallSeg1"]
+shape = SubResource("BoxShape3D_EastWallSeg1")
+
+[node name="EastWallSeg2" type="StaticBody3D" parent="NavRegion"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 1.8, 0)
+collision_layer = 1
+collision_mask = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NavRegion/EastWallSeg2"]
+material_override = ExtResource("34_mat_conc")
+mesh = SubResource("BoxMesh_EastWallSeg2")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavRegion/EastWallSeg2"]
+shape = SubResource("BoxShape3D_EastWallSeg2")
+
+[node name="EastWallSeg3" type="StaticBody3D" parent="NavRegion"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 1.8, -9.5)
+collision_layer = 1
+collision_mask = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NavRegion/EastWallSeg3"]
+material_override = ExtResource("34_mat_conc")
+mesh = SubResource("BoxMesh_EastWallSeg3")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavRegion/EastWallSeg3"]
+shape = SubResource("BoxShape3D_EastWallSeg3")
+
+[node name="DoorToHall" parent="NavRegion" instance=ExtResource("7_door")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+cost = 750
+unlock_zone_ids = Array[String](["hall_room"])
+
+[node name="DoorToCourtyard" parent="NavRegion" instance=ExtResource("7_door")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -12)
+cost = 1000
+unlock_zone_ids = Array[String](["courtyard"])
+
+[node name="ZoneManager" type="Node" parent="NavRegion"]
+script = ExtResource("9_zm")
+
+[node name="StartRoom" type="Node3D" parent="NavRegion/ZoneManager"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 6)
+script = ExtResource("10_zone")
+zone_id = "start_room"
+starts_unlocked = true
+adjacent_zone_ids = Array[String](["hall_room"])
+bounds_size = Vector3(12, 5, 12)
+
+[node name="BarricadeStartWest" parent="NavRegion/ZoneManager/StartRoom" instance=ExtResource("6_barricade")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -6, 0, 0)
+
+[node name="BarricadeStartEast" parent="NavRegion/ZoneManager/StartRoom" instance=ExtResource("6_barricade")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 6, 0, 0)
+
+[node name="SpawnStartWest" type="Marker3D" parent="NavRegion/ZoneManager/StartRoom" groups=["zombie_spawn"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 0, 0)
+metadata/barricade_path = NodePath("../BarricadeStartWest")
+
+[node name="SpawnStartEast" type="Marker3D" parent="NavRegion/ZoneManager/StartRoom" groups=["zombie_spawn"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0, 0)
+metadata/barricade_path = NodePath("../BarricadeStartEast")
+
+[node name="HallRoom" type="Node3D" parent="NavRegion/ZoneManager"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -6)
+script = ExtResource("10_zone")
+zone_id = "hall_room"
+starts_unlocked = false
+adjacent_zone_ids = Array[String](["start_room", "courtyard"])
+bounds_size = Vector3(12, 5, 12)
+
+[node name="BarricadeHallWest" parent="NavRegion/ZoneManager/HallRoom" instance=ExtResource("6_barricade")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -6, 0, 0)
+
+[node name="BarricadeHallEast" parent="NavRegion/ZoneManager/HallRoom" instance=ExtResource("6_barricade")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 6, 0, 0)
+
+[node name="SpawnHallWest" type="Marker3D" parent="NavRegion/ZoneManager/HallRoom" groups=["zombie_spawn"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 0, 0)
+metadata/barricade_path = NodePath("../BarricadeHallWest")
+
+[node name="SpawnHallEast" type="Marker3D" parent="NavRegion/ZoneManager/HallRoom" groups=["zombie_spawn"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0, 0)
+metadata/barricade_path = NodePath("../BarricadeHallEast")
+
+[node name="SpawnHallInterior" type="Marker3D" parent="NavRegion/ZoneManager/HallRoom" groups=["zombie_spawn"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -4)
+
+[node name="Courtyard" type="Node3D" parent="NavRegion/ZoneManager"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -15)
+script = ExtResource("10_zone")
+zone_id = "courtyard"
+starts_unlocked = false
+adjacent_zone_ids = Array[String](["hall_room"])
+bounds_size = Vector3(34, 5, 6)
+
+[node name="SpawnYardLeft" type="Marker3D" parent="NavRegion/ZoneManager/Courtyard" groups=["zombie_spawn"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 0, 0)
+
+[node name="SpawnYardRight" type="Marker3D" parent="NavRegion/ZoneManager/Courtyard" groups=["zombie_spawn"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0, 0)
+
+[node name="AmmoPickup" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.8, 0.25, 10)
+script = ExtResource("17_ammo")
+economy_config = ExtResource("15_ec")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="AmmoPickup"]
+material_override = SubResource("StandardMaterial3D_ammo")
+mesh = SubResource("BoxMesh_ammo")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="AmmoPickup"]
+shape = SubResource("BoxShape3D_ammo")
+
+[node name="RifleWallBuy" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.3, -2.5)
+script = ExtResource("18_wb")
+weapon_data = ExtResource("19_rifle")
+economy_config = ExtResource("15_ec")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="RifleWallBuy"]
+material_override = SubResource("StandardMaterial3D_wallbuy")
+mesh = SubResource("BoxMesh_wallbuy")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RifleWallBuy"]
+shape = SubResource("BoxShape3D_wallbuy")
+
+[node name="Player" parent="." instance=ExtResource("1_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 6)
+
+[node name="DebugOverlay" parent="." instance=ExtResource("2_debug")]
+player_path = NodePath("../Player")
+
+[node name="NavDebugOverlay" parent="." instance=ExtResource("4_navdbg")]
+
+[node name="HUD" parent="." instance=ExtResource("3_hud")]
+player_path = NodePath("../Player")
+round_manager_path = NodePath("../RoundManager")
+points_manager_path = NodePath("../PointsManager")
+
+[node name="GameOverScreen" parent="." instance=ExtResource("5_go")]
+
+[node name="PauseMenu" parent="." instance=ExtResource("33_pause")]
+player_path = NodePath("../Player")
+arena_controller_path = NodePath("../ArenaController")
+
+[node name="RoundManager" type="Node" parent="." groups=["round_manager"]]
+script = ExtResource("11_rm")
+round_config = ExtResource("12_rc")
+zombie_scene = ExtResource("13_zombie")
+
+[node name="PointsManager" type="Node" parent="." groups=["points_manager"]]
+script = ExtResource("14_pm")
+config = ExtResource("15_ec")
+
+[node name="ArenaController" type="Node" parent="."]
+script = ExtResource("16_ac")
+player_path = NodePath("../Player")
+round_manager_path = NodePath("../RoundManager")
+points_manager_path = NodePath("../PointsManager")
+game_over_path = NodePath("../GameOverScreen")
+
+[node name="HeavyPistolWallBuy" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.3, 9)
+script = ExtResource("18_wb")
+weapon_data = ExtResource("20_hp")
+economy_config = ExtResource("15_ec")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="HeavyPistolWallBuy"]
+material_override = SubResource("StandardMaterial3D_wallbuy")
+mesh = SubResource("BoxMesh_wallbuy")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HeavyPistolWallBuy"]
+shape = SubResource("BoxShape3D_wallbuy")
+
+[node name="SmgWallBuy" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.6, 1.3, -3)
+script = ExtResource("18_wb")
+weapon_data = ExtResource("21_smg")
+economy_config = ExtResource("15_ec")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="SmgWallBuy"]
+material_override = SubResource("StandardMaterial3D_wallbuy")
+mesh = SubResource("BoxMesh_wallbuy")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="SmgWallBuy"]
+shape = SubResource("BoxShape3D_wallbuy")
+
+[node name="AutoShotgunWallBuy" type="StaticBody3D" parent="."]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 0, 1.3, -17.6)
+script = ExtResource("18_wb")
+weapon_data = ExtResource("22_asg")
+economy_config = ExtResource("15_ec")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="AutoShotgunWallBuy"]
+material_override = SubResource("StandardMaterial3D_wallbuy")
+mesh = SubResource("BoxMesh_wallbuy")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="AutoShotgunWallBuy"]
+shape = SubResource("BoxShape3D_wallbuy")
+
+[node name="BoxLocations" type="Node3D" parent="."]
+
+[node name="BoxLocStart" type="Marker3D" parent="BoxLocations" groups=["mystery_box_location"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.5, 0, 10.5)
+metadata/zone_id = "start_room"
+
+[node name="BoxLocHall" type="Marker3D" parent="BoxLocations" groups=["mystery_box_location"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 0, -9.8)
+metadata/zone_id = "hall_room"
+
+[node name="BoxLocYard" type="Marker3D" parent="BoxLocations" groups=["mystery_box_location"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -15.5)
+metadata/zone_id = "courtyard"
+
+[node name="MysteryBox" parent="." instance=ExtResource("23_mbox")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.5, 0, 10.5)
+
+[node name="MysteryBoxManager" type="Node" parent="."]
+script = ExtResource("24_mbm")
+mystery_box_path = NodePath("../MysteryBox")
+
+[node name="PerkVitalSurge" parent="." instance=ExtResource("25_perkm")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 4.8, 0, 9.5)
+perk_data = ExtResource("26_pvital")
+economy_config = ExtResource("15_ec")
+
+[node name="PerkStreetRunner" parent="." instance=ExtResource("25_perkm")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -4.8, 0, -4.5)
+perk_data = ExtResource("27_prun")
+economy_config = ExtResource("15_ec")
+
+[node name="PerkIronHeart" parent="." instance=ExtResource("25_perkm")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -4.8, 0, -9.5)
+perk_data = ExtResource("28_piron")
+economy_config = ExtResource("15_ec")
+
+[node name="PerkDeadeyeTonic" parent="." instance=ExtResource("25_perkm")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -8.5, 0, -13)
+perk_data = ExtResource("29_pdead")
+economy_config = ExtResource("15_ec")
+
+[node name="PerkQuickHands" parent="." instance=ExtResource("25_perkm")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 8.5, 0, -13)
+perk_data = ExtResource("30_pquick")
+economy_config = ExtResource("15_ec")
+
+[node name="PerkHeavyCaliber" parent="." instance=ExtResource("25_perkm")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 8.5, 0, -17)
+perk_data = ExtResource("31_pheavy")
+economy_config = ExtResource("15_ec")
+
+[node name="ForgeBench" parent="." instance=ExtResource("32_forge")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -16)
+economy_config = ExtResource("15_ec")
+
+[node name="InteriorLights" type="Node3D" parent="."]
+
+[node name="StartRoomBulbLight" type="OmniLight3D" parent="InteriorLights" groups=["quality_shadow_light"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.3, 6)
+light_color = Color(1, 0.72, 0.42, 1)
+light_energy = 1.75
+shadow_enabled = true
+omni_range = 10.5
+
+[node name="StartRoomBulbMesh" type="MeshInstance3D" parent="InteriorLights/StartRoomBulbLight"]
+material_override = SubResource("StandardMaterial3D_bulb_warm")
+mesh = SubResource("SphereMesh_bulb")
+cast_shadow = 0
+
+[node name="HallRoomFlickerLight" type="OmniLight3D" parent="InteriorLights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.3, -6)
+light_color = Color(1, 0.64, 0.32, 1)
+light_energy = 1.45
+shadow_enabled = false
+omni_range = 10.5
+script = ExtResource("35_flicker")
+
+[node name="HallRoomBulbMesh" type="MeshInstance3D" parent="InteriorLights/HallRoomFlickerLight"]
+material_override = SubResource("StandardMaterial3D_bulb_warm")
+mesh = SubResource("SphereMesh_bulb")
+cast_shadow = 0
+
+[node name="CourtyardSpotLight" type="SpotLight3D" parent="InteriorLights" groups=["quality_shadow_light"]]
+transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 3.55, -12.35)
+light_color = Color(0.84, 0.88, 1, 1)
+light_energy = 2.1
+shadow_enabled = true
+spot_range = 15.0
+spot_angle = 52.0
+
+[node name="CourtyardBulbMesh" type="MeshInstance3D" parent="InteriorLights/CourtyardSpotLight"]
+material_override = SubResource("StandardMaterial3D_bulb_cool")
+mesh = SubResource("SphereMesh_bulb")
+cast_shadow = 0
+
+[node name="CompoundDressing" type="Node3D" parent="."]
+script = ExtResource("36_dressing")
+
+[node name="AmbienceManager" type="Node" parent="."]
+script = ExtResource("37_ambience")

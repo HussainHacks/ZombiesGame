@@ -1,0 +1,91 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/viewmodel_rig.gd" id="1_rig"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_olive"]
+albedo_color = Color(0.22, 0.27, 0.2, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_steel"]
+albedo_color = Color(0.14, 0.15, 0.16, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_chassis"]
+size = Vector3(0.05, 0.065, 0.42)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_barrel"]
+top_radius = 0.013
+bottom_radius = 0.013
+height = 0.56
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_scope"]
+top_radius = 0.024
+bottom_radius = 0.024
+height = 0.28
+
+[sub_resource type="BoxMesh" id="BoxMesh_mag"]
+size = Vector3(0.032, 0.1, 0.08)
+
+[sub_resource type="BoxMesh" id="BoxMesh_stock"]
+size = Vector3(0.045, 0.11, 0.26)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_flash"]
+shading_mode = 0
+albedo_color = Color(1, 0.85, 0.35, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_spark"]
+material = SubResource("StandardMaterial3D_flash")
+radius = 0.018
+height = 0.036
+
+[node name="ViewmodelSniper" type="Node3D"]
+script = ExtResource("1_rig")
+hip_position = Vector3(0.26, -0.24, -0.48)
+ads_position = Vector3(0, -0.155, -0.3)
+
+[node name="WeaponPivot" type="Node3D" parent="."]
+
+[node name="Chassis" type="MeshInstance3D" parent="WeaponPivot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, -0.04)
+material_override = SubResource("StandardMaterial3D_olive")
+mesh = SubResource("BoxMesh_chassis")
+
+[node name="Barrel" type="MeshInstance3D" parent="WeaponPivot"]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0.04, -0.5)
+material_override = SubResource("StandardMaterial3D_steel")
+mesh = SubResource("CylinderMesh_barrel")
+
+[node name="Scope" type="MeshInstance3D" parent="WeaponPivot"]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0.095, -0.02)
+material_override = SubResource("StandardMaterial3D_steel")
+mesh = SubResource("CylinderMesh_scope")
+
+[node name="Magazine" type="MeshInstance3D" parent="WeaponPivot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.045, -0.06)
+material_override = SubResource("StandardMaterial3D_steel")
+mesh = SubResource("BoxMesh_mag")
+
+[node name="Stock" type="MeshInstance3D" parent="WeaponPivot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0.28)
+material_override = SubResource("StandardMaterial3D_olive")
+mesh = SubResource("BoxMesh_stock")
+
+[node name="MuzzlePoint" type="Marker3D" parent="WeaponPivot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.04, -0.8)
+
+[node name="MuzzleLight" type="OmniLight3D" parent="WeaponPivot/MuzzlePoint"]
+visible = false
+light_color = Color(1, 0.85, 0.45, 1)
+light_energy = 3.5
+omni_range = 4.0
+
+[node name="MuzzleParticles" type="CPUParticles3D" parent="WeaponPivot/MuzzlePoint"]
+emitting = false
+amount = 10
+lifetime = 0.07
+one_shot = true
+explosiveness = 1.0
+mesh = SubResource("SphereMesh_spark")
+direction = Vector3(0, 0, -1)
+spread = 20.0
+gravity = Vector3(0, 0, 0)
+initial_velocity_min = 6.0
+initial_velocity_max = 12.0

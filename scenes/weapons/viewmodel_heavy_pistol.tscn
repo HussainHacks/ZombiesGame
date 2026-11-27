@@ -1,0 +1,73 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/viewmodel_rig.gd" id="1_rig"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_chrome"]
+albedo_color = Color(0.55, 0.57, 0.62, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_grip"]
+albedo_color = Color(0.24, 0.14, 0.08, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_frame"]
+size = Vector3(0.05, 0.065, 0.32)
+
+[sub_resource type="BoxMesh" id="BoxMesh_grip"]
+size = Vector3(0.044, 0.14, 0.07)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_drum"]
+top_radius = 0.032
+bottom_radius = 0.032
+height = 0.06
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_flash"]
+shading_mode = 0
+albedo_color = Color(1, 0.85, 0.35, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_spark"]
+material = SubResource("StandardMaterial3D_flash")
+radius = 0.018
+height = 0.036
+
+[node name="ViewmodelHeavyPistol" type="Node3D"]
+script = ExtResource("1_rig")
+hip_position = Vector3(0.23, -0.21, -0.45)
+ads_position = Vector3(0, -0.115, -0.35)
+
+[node name="WeaponPivot" type="Node3D" parent="."]
+
+[node name="Frame" type="MeshInstance3D" parent="WeaponPivot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.045, -0.08)
+material_override = SubResource("StandardMaterial3D_chrome")
+mesh = SubResource("BoxMesh_frame")
+
+[node name="Cylinder" type="MeshInstance3D" parent="WeaponPivot"]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0.035, 0.01)
+material_override = SubResource("StandardMaterial3D_chrome")
+mesh = SubResource("CylinderMesh_drum")
+
+[node name="Grip" type="MeshInstance3D" parent="WeaponPivot"]
+transform = Transform3D(1, 0, 0, 0, 0.939693, -0.34202, 0, 0.34202, 0.939693, 0, -0.045, 0.065)
+material_override = SubResource("StandardMaterial3D_grip")
+mesh = SubResource("BoxMesh_grip")
+
+[node name="MuzzlePoint" type="Marker3D" parent="WeaponPivot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, -0.25)
+
+[node name="MuzzleLight" type="OmniLight3D" parent="WeaponPivot/MuzzlePoint"]
+visible = false
+light_color = Color(1, 0.82, 0.4, 1)
+light_energy = 3.0
+omni_range = 3.5
+
+[node name="MuzzleParticles" type="CPUParticles3D" parent="WeaponPivot/MuzzlePoint"]
+emitting = false
+amount = 8
+lifetime = 0.06
+one_shot = true
+explosiveness = 1.0
+mesh = SubResource("SphereMesh_spark")
+direction = Vector3(0, 0, -1)
+spread = 28.0
+gravity = Vector3(0, 0, 0)
+initial_velocity_min = 5.0
+initial_velocity_max = 9.0

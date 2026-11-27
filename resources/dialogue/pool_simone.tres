@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="DialoguePool" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/dialogue/dialogue_pool.gd" id="1_dp"]
+
+[resource]
+script = ExtResource("1_dp")
+pool_id = "pool_simone"
+categories = {
+"bought_perk": ["Standard pro-circuit edge. Watch how fast I move now.", "Finally, gear calibrated to my actual reaction time.", "Paid for the upgrade—now watch the gap widen.", "Performance boost locked in. Good luck catching up."],
+"bought_weapon": ["Watch and learn—this is how you clear a lane.", "Put real steel in my hands and watch the scoreboard.", "Upgraded hardware. Try not to blink.", "Real firepower now—time to set a record.", "Picked the best tool on the wall, obviously."],
+"box_bad": ["This rigged machine is clearly malfunctioning. Not on me.", "Garbage roll. Whoever built this box owes me points.", "Defective crate. Even pros get bad RNG sometimes.", "Worst pull of the night—check that box's calibration."],
+"box_good": ["Of course it gave me the top-tier piece.", "Now that's a championship loadout. Try keeping up.", "Gold-tier draw. The box knows who's carrying.", "Top-shelf hardware. Now the match actually gets interesting."],
+"door_opened": ["Next sector's open—stay behind me if you're nervous.", "Clearing the next zone. Form up on my pace.", "Unlocked the lane—follow my lead.", "Door's down. Moving to the next split."],
+"high_round": ["Okay, they're faster now—who forgot to lock the perimeter?!", "Alright, alright, maybe don't corner me like that!", "High-pace wave—finally a real warm-up!", "Big wave incoming—watch how a pro handles pressure."],
+"kill_streak": ["Clean, clean, clean! Nobody touches my split times!", "Three down before you even aimed. You're welcome.", "Hat trick! Put that on the highlight reel!", "Zero wasted shots—pure precision!", "Three more for the leaderboard—keep counting!"],
+"low_health": ["Wait—how did they clip me?! Fix this angle!", "Okay, bad positioning—not my fault, the floor's slick!", "Redlining! Somebody messed with my spacing!", "Taking fire—give me two seconds to reset!"],
+"out_of_ammo": ["Empty?! Who shorted my reserve count?!", "Dry mag! Cover me—I don't miss, the gun's out!", "Zero rounds left—this mag must've been half-full!", "Out of ammo—switching fast, stay out of my lane!"],
+"player_died": ["No way... the lag—no, my footing slipped...", "Wait, I had that angle... how...", "Rematch... that round didn't count...", "Clock stopped early... I had that..."],
+"reloading": ["Swapping mags—five seconds, don't blink.", "Quick reload. Keep your eyes on the door, not me.", "Fresh mag—stay back while I cycle.", "Reloading! Still faster than anyone else here.", "Dropping empty, snapping fresh—back in one second."],
+"round_end": ["Too easy. Barely broke a sweat.", "Wave cleared. Next time I'll aim for a faster split.", "Done already? Thought they'd last longer.", "Clean clear. Patch the boards and stay sharp.", "Another round in the bag—check that accuracy."],
+"round_start": ["Clock's ticking. Let's set a new pace.", "Fresh wave—watch the masterclass.", "Next round live—eyes front, no sloppy angles.", "Here we go—let's beat last round's time.", "New wave inbound. Keep up if you can."],
+"took_damage": ["Hey! Who let that one flank me?!", "Cheap shot! That doesn't even count!", "Whoa—watch the blind side! Not cool!", "Clipped me! That hitbox was ridiculous!", "Back off! Nobody tags me for free!"],
+"zombie_spotted": ["Target ahead—already lined up.", "Runner spotted. Calling dibs on the headshot.", "One in the lane—watch this snap shot.", "Eyes on a sprinter—mine!", "Incoming on the flank—already tracking it."]
+}

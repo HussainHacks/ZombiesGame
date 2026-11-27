@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1_data"]
+[ext_resource type="PackedScene" path="res://scenes/weapons/viewmodel_sniper.tscn" id="2_vm"]
+
+[resource]
+script = ExtResource("1_data")
+display_name = "Longshot-308"
+category = 4
+fire_mode = 0
+rarity = 2
+box_weight = 0.7
+cost = 2000
+ammo_cost = 850
+damage = 145.0
+headshot_multiplier = 3.0
+pellet_count = 1
+pierce_count = 1
+pierce_damage_falloff = 0.75
+fire_rate = 0.85
+pump_cycle_delay = 0.0
+range = 200.0
+magazine_size = 5
+reserve_ammo_max = 25
+reload_time = 2.7
+spread_hip = 5.0
+spread_aim = 0.05
+spread_per_shot = 2.5
+spread_max = 10.0
+spread_recovery_rate = 5.0
+recoil_pitch = 5.5
+recoil_yaw_range = 0.9
+move_speed_multiplier = 0.78
+aim_fov_multiplier = 0.42
+has_scope_overlay = true
+viewmodel_scene = ExtResource("2_vm")

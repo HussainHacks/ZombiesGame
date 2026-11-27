@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1_data"]
+[ext_resource type="PackedScene" path="res://scenes/weapons/viewmodel_smg.tscn" id="2_vm"]
+
+[resource]
+script = ExtResource("1_data")
+display_name = "Viper-9"
+category = 3
+fire_mode = 1
+rarity = 0
+box_weight = 1.5
+cost = 1000
+ammo_cost = 500
+damage = 15.0
+headshot_multiplier = 1.7
+pellet_count = 1
+pierce_count = 0
+pierce_damage_falloff = 0.75
+fire_rate = 14.0
+pump_cycle_delay = 0.0
+range = 48.0
+magazine_size = 40
+reserve_ammo_max = 200
+reload_time = 1.55
+spread_hip = 3.6
+spread_aim = 0.85
+spread_per_shot = 0.45
+spread_max = 9.5
+spread_recovery_rate = 8.0
+recoil_pitch = 0.7
+recoil_yaw_range = 0.55
+move_speed_multiplier = 1.0
+aim_fov_multiplier = 0.85
+has_scope_overlay = false
+viewmodel_scene = ExtResource("2_vm")

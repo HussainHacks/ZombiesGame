@@ -1,0 +1,155 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Theme" path="res://resources/ui/dark_theme.tres" id="1_theme"]
+[ext_resource type="Script" path="res://scripts/ui/settings_panel.gd" id="2_script"]
+
+[node name="SettingsPanel" type="PanelContainer"]
+custom_minimum_size = Vector2(460, 0)
+theme = ExtResource("1_theme")
+script = ExtResource("2_script")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Header" type="Label" parent="VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "SETTINGS"
+horizontal_alignment = 1
+
+[node name="MasterRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBox/MasterRow"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+text = "Master Volume"
+
+[node name="Slider" type="HSlider" parent="VBox/MasterRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 1.0
+step = 0.05
+value = 1.0
+
+[node name="MusicRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBox/MusicRow"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+text = "Music Volume"
+
+[node name="Slider" type="HSlider" parent="VBox/MusicRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 1.0
+step = 0.05
+value = 0.8
+
+[node name="SfxRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBox/SfxRow"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+text = "Effects Volume"
+
+[node name="Slider" type="HSlider" parent="VBox/SfxRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 1.0
+step = 0.05
+value = 1.0
+
+[node name="AmbienceRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBox/AmbienceRow"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+text = "Ambience Volume"
+
+[node name="Slider" type="HSlider" parent="VBox/AmbienceRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 1.0
+step = 0.05
+value = 0.8
+
+[node name="QualityRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBox/QualityRow"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+text = "Quality"
+
+[node name="ToggleButton" type="Button" parent="VBox/QualityRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "High"
+
+[node name="SensRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBox/SensRow"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+text = "Mouse Sensitivity"
+
+[node name="Slider" type="HSlider" parent="VBox/SensRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.0005
+max_value = 0.01
+step = 0.0001
+value = 0.0022
+
+[node name="FovRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBox/FovRow"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+text = "Field of View"
+
+[node name="Slider" type="HSlider" parent="VBox/FovRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 60.0
+max_value = 110.0
+step = 1.0
+value = 80.0
+
+[node name="TogglesRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="FullscreenCheck" type="CheckButton" parent="VBox/TogglesRow"]
+layout_mode = 2
+text = "Fullscreen"
+
+[node name="VsyncCheck" type="CheckButton" parent="VBox/TogglesRow"]
+layout_mode = 2
+button_pressed = true
+text = "VSync"
+
+[node name="SubtitlesCheck" type="CheckButton" parent="VBox/TogglesRow"]
+layout_mode = 2
+button_pressed = true
+text = "Subtitles"
+
+[node name="ButtonsRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="ResetButton" type="Button" parent="VBox/ButtonsRow"]
+layout_mode = 2
+text = "Reset to Defaults"
+
+[node name="BackButton" type="Button" parent="VBox/ButtonsRow"]
+layout_mode = 2
+text = "Back"

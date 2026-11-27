@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EconomyConfig" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/economy/economy_config.gd" id="1_ec"]
+
+[resource]
+script = ExtResource("1_ec")
+starting_points = 500
+points_per_hit = 10
+points_per_kill = 60
+points_headshot_bonus = 40
+rifle_wall_buy_cost = 1200
+rifle_ammo_cost = 600
+ammo_crate_cost = 450

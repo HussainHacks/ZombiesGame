@@ -1,0 +1,24 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/nav_debug_overlay.gd" id="1_navdbg"]
+
+[node name="NavDebugOverlay" type="CanvasLayer"]
+layer = 11
+script = ExtResource("1_navdbg")
+
+[node name="PanelContainer" type="PanelContainer" parent="."]
+offset_left = 16.0
+offset_top = 140.0
+offset_right = 340.0
+offset_bottom = 260.0
+
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 8
+
+[node name="NavLabel" type="Label" parent="PanelContainer/MarginContainer"]
+layout_mode = 2
+text = "Nav Debug [F4]"

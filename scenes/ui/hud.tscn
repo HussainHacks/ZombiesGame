@@ -1,0 +1,368 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1_hud"]
+
+[sub_resource type="Gradient" id="Gradient_vignette"]
+offsets = PackedFloat32Array(0.35, 1)
+colors = PackedColorArray(0.7, 0.05, 0.05, 0, 0.85, 0.05, 0.05, 0.85)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_vignette"]
+gradient = SubResource("Gradient_vignette")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 1)
+
+[node name="HUD" type="CanvasLayer"]
+layer = 5
+script = ExtResource("1_hud")
+
+[node name="DamageVignette" type="TextureRect" parent="."]
+modulate = Color(1, 1, 1, 0)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = SubResource("GradientTexture2D_vignette")
+expand_mode = 1
+
+[node name="ScopeOverlay" type="Control" parent="."]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="DimTop" type="ColorRect" parent="ScopeOverlay"]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 110.0
+grow_horizontal = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.92)
+
+[node name="DimBottom" type="ColorRect" parent="ScopeOverlay"]
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -110.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.92)
+
+[node name="DimLeft" type="ColorRect" parent="ScopeOverlay"]
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_right = 260.0
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.92)
+
+[node name="DimRight" type="ColorRect" parent="ScopeOverlay"]
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -260.0
+grow_horizontal = 0
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.92)
+
+[node name="HLine" type="ColorRect" parent="ScopeOverlay"]
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -1.0
+offset_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.85)
+
+[node name="VLine" type="ColorRect" parent="ScopeOverlay"]
+anchors_preset = 13
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -1.0
+offset_right = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.85)
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Crosshair" type="Control" parent="CenterContainer"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Top" type="ColorRect" parent="CenterContainer/Crosshair"]
+layout_mode = 0
+offset_left = -1.0
+offset_top = -14.0
+offset_right = 1.0
+offset_bottom = -6.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.85)
+
+[node name="Bottom" type="ColorRect" parent="CenterContainer/Crosshair"]
+layout_mode = 0
+offset_left = -1.0
+offset_top = 6.0
+offset_right = 1.0
+offset_bottom = 14.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.85)
+
+[node name="Left" type="ColorRect" parent="CenterContainer/Crosshair"]
+layout_mode = 0
+offset_left = -14.0
+offset_top = -1.0
+offset_right = -6.0
+offset_bottom = 1.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.85)
+
+[node name="Right" type="ColorRect" parent="CenterContainer/Crosshair"]
+layout_mode = 0
+offset_left = 6.0
+offset_top = -1.0
+offset_right = 14.0
+offset_bottom = 1.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.85)
+
+[node name="HitMarker" type="Control" parent="CenterContainer"]
+visible = false
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Diag1" type="ColorRect" parent="CenterContainer/HitMarker"]
+layout_mode = 0
+offset_left = -10.0
+offset_top = -1.0
+offset_right = 10.0
+offset_bottom = 1.0
+rotation = 0.785398
+pivot_offset = Vector2(10, 1)
+mouse_filter = 2
+
+[node name="Diag2" type="ColorRect" parent="CenterContainer/HitMarker"]
+layout_mode = 0
+offset_left = -10.0
+offset_top = -1.0
+offset_right = 10.0
+offset_bottom = 1.0
+rotation = -0.785398
+pivot_offset = Vector2(10, 1)
+mouse_filter = 2
+
+[node name="DamageIndicatorPivot" type="Control" parent="CenterContainer"]
+visible = false
+layout_mode = 2
+mouse_filter = 2
+
+[node name="ArrowBar" type="ColorRect" parent="CenterContainer/DamageIndicatorPivot"]
+layout_mode = 0
+offset_left = -16.0
+offset_top = -120.0
+offset_right = 16.0
+offset_bottom = -110.0
+mouse_filter = 2
+color = Color(1, 0.15, 0.15, 0.95)
+
+[node name="AnnouncementLabel" type="Label" parent="."]
+visible = false
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -180.0
+offset_top = 48.0
+offset_right = 180.0
+offset_bottom = 90.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 28
+text = "ROUND 1"
+horizontal_alignment = 1
+
+[node name="PromptLabel" type="Label" parent="."]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = 48.0
+offset_right = 200.0
+offset_bottom = 78.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 18
+text = "Press E - Strider-556 [1200]"
+horizontal_alignment = 1
+
+[node name="InteractProgressBar" type="ProgressBar" parent="."]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -90.0
+offset_top = 82.0
+offset_right = 90.0
+offset_bottom = 98.0
+grow_horizontal = 2
+grow_vertical = 2
+show_percentage = false
+
+[node name="AmmoPanel" type="PanelContainer" parent="."]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -210.0
+offset_top = -88.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="AmmoPanel"]
+layout_mode = 2
+
+[node name="WeaponNameLabel" type="Label" parent="AmmoPanel/VBoxContainer"]
+layout_mode = 2
+text = "Street-9"
+horizontal_alignment = 2
+
+[node name="AmmoLabel" type="Label" parent="AmmoPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "12 / 72"
+horizontal_alignment = 2
+
+[node name="HealthPanel" type="PanelContainer" parent="."]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -70.0
+offset_right = 190.0
+offset_bottom = -20.0
+grow_vertical = 0
+mouse_filter = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="HealthPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 6
+
+[node name="HealthLabel" type="Label" parent="HealthPanel/MarginContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "HP: 100 / 100"
+
+[node name="RoundPanel" type="PanelContainer" parent="."]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -180.0
+offset_top = 16.0
+offset_right = -20.0
+offset_bottom = 78.0
+grow_horizontal = 0
+mouse_filter = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="RoundPanel"]
+layout_mode = 2
+
+[node name="RoundLabel" type="Label" parent="RoundPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "ROUND 1"
+horizontal_alignment = 2
+
+[node name="RemainingLabel" type="Label" parent="RoundPanel/VBoxContainer"]
+layout_mode = 2
+text = "Zombies: 0"
+horizontal_alignment = 2
+
+[node name="PointsPanel" type="PanelContainer" parent="."]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -132.0
+offset_right = 190.0
+offset_bottom = -78.0
+grow_vertical = 0
+mouse_filter = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PointsPanel"]
+layout_mode = 2
+
+[node name="PointsLabel" type="Label" parent="PointsPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "500 PTS"
+
+[node name="PointsPopupLabel" type="Label" parent="PointsPanel/VBoxContainer"]
+visible = false
+modulate = Color(1, 0.85, 0.25, 1)
+layout_mode = 2
+text = "+10"
+
+[node name="PerkBar" type="HBoxContainer" parent="."]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -178.0
+offset_right = 280.0
+offset_bottom = -140.0
+grow_vertical = 0
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="SubtitlePanel" type="PanelContainer" parent="."]
+visible = false
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -300.0
+offset_top = -96.0
+offset_right = 300.0
+offset_bottom = -42.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+
+[node name="SubtitleLabel" type="RichTextLabel" parent="SubtitlePanel"]
+layout_mode = 2
+mouse_filter = 2
+bbcode_enabled = true
+text = ""
+fit_content = true
+horizontal_alignment = 1

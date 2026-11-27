@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="DialoguePool" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/dialogue/dialogue_pool.gd" id="1_dp"]
+
+[resource]
+script = ExtResource("1_dp")
+pool_id = "pool_tasha"
+categories = {
+"bought_perk": ["Whoa, my teeth just vibrated in C-sharp!", "Pretty sure this juice rewired my reflexes—feels great!", "Tastes like neon static and midnight coffee!", "Ooh, fizzy! My whole skeleton just tuned up!"],
+"bought_weapon": ["Ooh, listen to that bolt clack. Pure percussion.", "New toy! Let's see what frequency breaks skulls.", "Heavy metal solo coming right up!", "Ooh, matte finish! Very moody, very loud!", "Fresh instrument—let's check the acoustics!"],
+"box_bad": ["The crate's haunted by an accountant. Rude.", "Okay, the box definitely skipped my lucky track.", "Boo! That sounded like a flat tire in D-minor!", "Aw, a clunker—wrong key entirely!"],
+"box_good": ["Aha! I knew humming at the lid would work!", "Yes! This thing sounds like thunder in a tin shed!", "Ooh, shiny crescendo! Look at that recoil!", "Encore! Now that's a headliner weapon!"],
+"door_opened": ["New room! Smells like wet concrete and bad intentions.", "Door's open—bet there's a secret switch behind that crate.", "Ooh, bigger echo in here! Let's rearrange the furniture!", "Door's unlocked—hello, mysterious new acoustics!"],
+"high_round": ["Okay, the bassline just doubled—everybody dance sideways!", "Whoa, they're definitely syncing up to the streetlight hum!", "Full orchestra of bad news out there tonight!", "Tempo's way up—don't trip over the drumkit!"],
+"kill_streak": ["One, two, three—like tuning a snare drum!", "Boom-bap! Nobody messes with my tempo!", "Three down in four-four time!", "Solo's hitting hard tonight!", "Count 'em—one, two, three, Encore denied!"],
+"low_health": ["Uh oh, my ears are ringing in two different keys!", "Okay, okay, universe—pause the boss music!", "Static's getting loud—need a breather bar!", "Whoa, everything's red—turn down the distortion!"],
+"out_of_ammo": ["Click-click! Somebody stole my last magazine!", "Empty! Time to improvise with harsh language!", "Zero brass left—who muted my track?!", "Dry click! Need bullets before the next chorus!"],
+"player_died": ["Wait... the reverb... didn't fade out...", "Tell the soundboard... I had one more cue...", "Fade to black... wrong ending...", "Mic drop... wrong timing..."],
+"reloading": ["Swapping mags—cue the dramatic drumroll!", "Reloading! Nobody look at my hands, it's magic!", "Quick interlude while I feed the magazine!", "Rest beat! Let me click this back in!", "Reloading! Keep the rhythm section steady!"],
+"round_end": ["Silence! Enjoy the room tone while it lasts.", "Wave done. Did anyone else hear that vent whistle?", "Intermission! Somebody tune the cricket chorus!", "And cut! Quiet on the set for ten seconds!", "Whew—nice acoustic break before the next verse."],
+"round_start": ["Showtime! Somebody cue the fog machine!", "Round's live—I bet fifty bucks they come from the left!", "Lights down, monsters up—hit the downbeat!", "Next track's starting and it's definitely in a minor key!", "Here comes the chorus—nobody miss their cue!"],
+"took_damage": ["Ow! Hey, you ruined my rhythm!", "Rude! Do I look like a chew toy?!", "Ouch! That was way off-beat, buddy!", "Hey! Watch the coat, it's vintage!", "Ow! Somebody needs a lesson in personal tempo!"],
+"zombie_spotted": ["Ooh, look at the posture on that one—zero core strength!", "Incoming! And it looks like it skipped breakfast!", "Glowing eyes at twelve o'clock—spooky!", "Hello, tall dark and shambling!", "Movement in the fog—cue the suspense chords!"]
+}

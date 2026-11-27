@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="RoundConfig" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/rounds/round_config.gd" id="1_rc"]
+
+[resource]
+script = ExtResource("1_rc")
+start_round = 1
+base_zombie_count = 6
+count_growth_per_round = 3.5
+max_zombies_per_round = 100
+max_concurrent_zombies = 24
+base_health_multiplier = 1.0
+early_health_growth_per_round = 0.25
+late_health_growth_per_round = 0.08
+health_taper_round = 10
+max_health_multiplier = 8.0
+base_speed_multiplier = 1.0
+speed_growth_per_round = 0.04
+max_speed_multiplier = 1.65
+base_spawn_interval = 1.8
+spawn_interval_decay_per_round = 0.08
+min_spawn_interval = 0.45
+intermission_duration = 5.0
+initial_countdown = 1.5

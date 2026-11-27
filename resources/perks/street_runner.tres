@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="PerkData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/perks/perk_data.gd" id="1_perk"]
+
+[resource]
+script = ExtResource("1_perk")
+perk_id = &"street_runner"
+display_name = "Street Runner"
+short_label = "SPD"
+description = "1.18x Movement Speed."
+cost = 2000
+accent_color = Color(0.9, 0.64, 0.24, 1)
+current_health_bonus = 0.0
+stat_modifiers = Array[Dictionary]([{
+"op": 1,
+"stat": &"move_speed",
+"value": 1.18
+}])

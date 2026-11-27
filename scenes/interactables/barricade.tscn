@@ -1,0 +1,110 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/interactables/barricade.gd" id="1_barricade"]
+[ext_resource type="Script" path="res://scripts/interactables/barricade_interact.gd" id="2_interact"]
+[ext_resource type="Material" path="res://resources/materials/mat_worn_wood.tres" id="3_wood"]
+[ext_resource type="Material" path="res://resources/materials/mat_rusted_metal.tres" id="4_metal"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_frame"]
+albedo_color = Color(0.26, 0.25, 0.24, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wood"]
+albedo_color = Color(0.52, 0.35, 0.18, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_board"]
+size = Vector3(1.5, 0.14, 0.08)
+
+[sub_resource type="BoxMesh" id="BoxMesh_pillar"]
+size = Vector3(0.2, 2.2, 0.3)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_blocker"]
+size = Vector3(1.5, 2.1, 0.35)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_interact"]
+size = Vector3(1.6, 2.1, 0.5)
+
+[node name="Barricade" type="Node3D"]
+script = ExtResource("1_barricade")
+
+[node name="FrameLeft" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.85, 1.1, 0)
+material_override = ExtResource("4_metal")
+mesh = SubResource("BoxMesh_pillar")
+
+[node name="FrameRight" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.85, 1.1, 0)
+material_override = ExtResource("4_metal")
+mesh = SubResource("BoxMesh_pillar")
+
+[node name="BoardsRoot" type="Node3D" parent="."]
+
+[node name="Board0" type="MeshInstance3D" parent="BoardsRoot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+material_override = ExtResource("3_wood")
+mesh = SubResource("BoxMesh_board")
+
+[node name="Board1" type="MeshInstance3D" parent="BoardsRoot"]
+transform = Transform3D(0.996195, -0.0871557, 0, 0.0871557, 0.996195, 0, 0, 0, 1, 0, 0.8, 0.04)
+material_override = ExtResource("3_wood")
+mesh = SubResource("BoxMesh_board")
+
+[node name="Board2" type="MeshInstance3D" parent="BoardsRoot"]
+transform = Transform3D(0.996195, 0.0871557, 0, -0.0871557, 0.996195, 0, 0, 0, 1, 0, 1.15, -0.03)
+material_override = ExtResource("3_wood")
+mesh = SubResource("BoxMesh_board")
+
+[node name="Board3" type="MeshInstance3D" parent="BoardsRoot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0.03)
+material_override = ExtResource("3_wood")
+mesh = SubResource("BoxMesh_board")
+
+[node name="Board4" type="MeshInstance3D" parent="BoardsRoot"]
+transform = Transform3D(0.996195, -0.0871557, 0, 0.0871557, 0.996195, 0, 0, 0, 1, 0, 1.85, 0)
+material_override = ExtResource("3_wood")
+mesh = SubResource("BoxMesh_board")
+
+[node name="BlockerBody" type="StaticBody3D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BlockerBody"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.05, 0)
+shape = SubResource("BoxShape3D_blocker")
+
+[node name="InteractCollider" type="StaticBody3D" parent="."]
+collision_layer = 16
+collision_mask = 0
+script = ExtResource("2_interact")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="InteractCollider"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.05, 0)
+shape = SubResource("BoxShape3D_interact")
+
+[node name="NavLink" type="NavigationLink3D" parent="."]
+enabled = false
+bidirectional = false
+start_position = Vector3(0, 0.1, 0.85)
+end_position = Vector3(0, 0.1, -0.85)
+
+[node name="AttackSlots" type="Node3D" parent="."]
+
+[node name="Slot0" type="Marker3D" parent="AttackSlots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.05)
+
+[node name="Slot1" type="Marker3D" parent="AttackSlots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.75, 0, 1.15)
+
+[node name="Slot2" type="Marker3D" parent="AttackSlots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.75, 0, 1.15)
+
+[node name="WaitPoint" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2.5)
+
+[node name="OutsidePoint" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.25)
+
+[node name="InsidePoint" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.85)
+
+[node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="."]
+max_distance = 20.0

@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="PerkData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/perks/perk_data.gd" id="1_perk"]
+
+[resource]
+script = ExtResource("1_perk")
+perk_id = &"quick_hands"
+display_name = "Quick Hands"
+short_label = "RLD"
+description = "1.55x Reload Speed and 1.25x Weapon Handling."
+cost = 3000
+accent_color = Color(0.22, 0.72, 0.42, 1)
+current_health_bonus = 0.0
+stat_modifiers = Array[Dictionary]([{
+"op": 1,
+"stat": &"reload_speed",
+"value": 1.55
+}, {
+"op": 1,
+"stat": &"weapon_handling",
+"value": 1.25
+}])

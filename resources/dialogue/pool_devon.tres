@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="DialoguePool" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/dialogue/dialogue_pool.gd" id="1_dp"]
+
+[resource]
+script = ExtResource("1_dp")
+pool_id = "pool_devon"
+categories = {
+"bought_perk": ["Tastes awful, works fine. Keep moving.", "Good. Extra margin means fewer funerals.", "Worth every point if it keeps us upright.", "Bought some insurance. Stay sharp anyway."],
+"bought_weapon": ["Reliable feed, solid sights. This'll hold.", "Upgraded hardware. Don't waste half the mag on walls.", "Heavy iron, simple mechanics. Good trade.", "Bought something that won't jam in the dark.", "Clean barrel, steady stock. Back to work."],
+"box_bad": ["Jammed spring and a bad roll. Should've bought wall ammo.", "Nine-fifty down the drain. Stick to the reliable stuff.", "Junk draw. Lesson learned—again.", "Wasted points on scrap. Back to basics."],
+"box_good": ["Alright, that's actually worth the points.", "Heavy hardware. Keep the barrel clear and conserve rounds.", "Solid pull. Make every round count.", "Good roll for once. Keep it fed."],
+"door_opened": ["Door's open. Watch both corners before stepping through.", "New room, two more windows to board up later.", "More floor space to kite, more flanks to watch.", "Cleared the latch. Keep your eyes on the rear."],
+"high_round": ["Perimeter's failing fast. Save ammo for headshots only.", "Long haul now. Check your exits before reloading.", "Tighter margins every wave. Stay off the walls.", "Heavy wave—keep moving in a wide loop."],
+"kill_streak": ["Clean lane. Keep the choke point clear.", "Three dropped. Don't celebrate—check behind you.", "Steady bursts, three down. Keep moving.", "Good grouping. Reload when the hall's clear.", "Choke point held. Don't burn reserve."],
+"low_health": ["Taking too many hits. Back up and let health recover.", "Redline! Break contact and breathe for four seconds.", "Too many grazes—get out of arm's reach.", "Vision's fading. Clear space and recover first."],
+"out_of_ammo": ["Dry chamber. Switching slots—always carry a backup.", "Out of rounds. Fall back to the wall-buy.", "Empty mag and zero reserve. Need a refill now.", "Out of brass—moving to the ammo crate."],
+"player_died": ["Should've... boarded that last window...", "Out of margin... keep the doors shut...", "Too tight... watch the rear lane...", "Ran out of room... stay clear..."],
+"reloading": ["Reloading. Back up two steps while I swap.", "Changing mags—watch the hallway.", "Half-empty, topping off before the next push.", "Swapping mags. Keep clear of the window.", "Reloading—don't get pinned in the doorway."],
+"round_end": ["Wave's clear. Patch the boards while it's quiet.", "Good. Reload everything before the next bell.", "Breather's short. Check ammo and perks.", "Boards first, then wall-buys. Move.", "Clean wave. Keep our backs off the corner."],
+"round_start": ["Here we go again. Check your corners.", "New wave inbound. Hold the tight angles.", "Boards are rattling. Keep your sightline open.", "Next wave's up. Conserve ammo early.", "Watch the windows—they'll test the weak side first."],
+"took_damage": ["Too close. Need more space before firing.", "Got tagged. Watch the blind side.", "Claw hit—step back out of reach.", "Let one slip past. Won't happen twice.", "Took a hit. Keep moving forward, not backward."],
+"zombie_spotted": ["Movement at the barricade. Line it up.", "One coming through the main lane.", "Contact ahead—aim high, save rounds.", "Shadow moving by the fence.", "One flanking left—keep it in front."]
+}

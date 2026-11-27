@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1_data"]
+[ext_resource type="PackedScene" path="res://scenes/weapons/viewmodel_pistol.tscn" id="2_vm"]
+
+[resource]
+script = ExtResource("1_data")
+display_name = "Street-9"
+category = 0
+fire_mode = 0
+rarity = 0
+box_weight = 0.0
+cost = 0
+ammo_cost = 150
+damage = 28.0
+headshot_multiplier = 2.2
+pellet_count = 1
+fire_rate = 6.0
+pump_cycle_delay = 0.0
+range = 65.0
+magazine_size = 12
+reserve_ammo_max = 72
+reload_time = 1.35
+spread_hip = 1.4
+spread_aim = 0.25
+spread_per_shot = 0.7
+spread_max = 6.0
+spread_recovery_rate = 7.0
+recoil_pitch = 1.6
+recoil_yaw_range = 0.5
+move_speed_multiplier = 1.0
+aim_fov_multiplier = 0.86
+viewmodel_scene = ExtResource("2_vm")

@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/enemy_data.gd" id="1_enemy"]
+
+[resource]
+script = ExtResource("1_enemy")
+display_name = "Walker"
+base_health = 100.0
+move_speed = 2.6
+run_speed = 4.4
+turn_speed = 8.5
+detection_range = 40.0
+attack_damage = 25.0
+attack_range = 1.9
+attack_windup = 0.42
+attack_cooldown = 1.05
+points_hit = 10
+points_kill = 60
+points_headshot_kill = 100
+score_value = 100

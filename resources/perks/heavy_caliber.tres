@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="PerkData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/perks/perk_data.gd" id="1_perk"]
+
+[resource]
+script = ExtResource("1_perk")
+perk_id = &"heavy_caliber"
+display_name = "Heavy Caliber"
+short_label = "DMG"
+description = "1.35x Weapon Damage."
+cost = 3500
+accent_color = Color(0.61, 0.36, 0.9, 1)
+current_health_bonus = 0.0
+stat_modifiers = Array[Dictionary]([{
+"op": 1,
+"stat": &"damage_multiplier",
+"value": 1.35
+}])
