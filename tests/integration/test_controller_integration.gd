@@ -247,7 +247,7 @@ func _test_controller_autoplay(tree: SceneTree) -> String:
 			_send_axis(JOY_AXIS_RIGHT_Y, clampf(-pitch_err * 3.0, -1.0, 1.0))
 			var inside_room: bool = absf(best_z.global_position.x) <= 5.8 and best_z.global_position.z >= 0.5
 			_send_axis(JOY_AXIS_LEFT_Y, -0.5 if (inside_room and best_d > 4.0) else 0.0)
-			if inside_room and absf(yaw_err) < 0.22 and not rt_down:
+			if inside_room and absf(yaw_err) < 0.12 and absf(pitch_err) < 0.12 and not rt_down:
 				_send_axis(JOY_AXIS_TRIGGER_RIGHT, 0.9)
 				rt_down = true
 			elif rt_down:

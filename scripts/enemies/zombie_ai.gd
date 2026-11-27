@@ -75,6 +75,10 @@ var _death_emitted: bool = false
 var _despawn_timer: float = 0.0
 var _watchdog_timer: float = 0.0
 var _watchdog_best_dist: float = INF
+var _safe_velocity: Vector3 = Vector3.ZERO
+var _has_safe_velocity: bool = false
+var _stuck_best_dest_dist: float = INF
+var _no_progress_timer: float = 0.0
 
 
 func _ready() -> void:
@@ -90,9 +94,20 @@ func _ready() -> void:
 		health_component.damaged.connect(_on_damaged)
 		health_component.died.connect(_on_died)
 
+	if nav_agent != null:
+		nav_agent.avoidance_enabled = true
+		nav_agent.max_speed = (data.move_speed * speed_multiplier) if data != null else 3.5
+		if not nav_agent.velocity_computed.is_connected(_on_nav_velocity_computed):
+			nav_agent.velocity_computed.connect(_on_nav_velocity_computed)
+
 	_last_stuck_check_pos = global_position
 	_path_timer = randf_range(0.0, path_update_interval)
 	target_player = get_tree().get_first_node_in_group("player") as Node3D
+
+
+func _on_nav_velocity_computed(safe_velocity: Vector3) -> void:
+	_safe_velocity = safe_velocity
+	_has_safe_velocity = true
 
 
 func _exit_tree() -> void:
@@ -249,8 +264,24 @@ func _process_enter_barricade(delta: float) -> void:
 	var dir: Vector3 = to_inside / flat_dist
 	_face_direction(dir, delta)
 	var speed: float = data.move_speed * speed_multiplier
-	velocity.x = dir.x * speed
-	velocity.z = dir.z * speed
+	var enter_vel := Vector3(dir.x * speed, 0.0, dir.z * speed)
+	enter_vel = _project_out_of_wall(enter_vel)
+	velocity.x = enter_vel.x
+	velocity.z = enter_vel.z
+	_check_stuck(delta, inside_pos)
+
+
+func _project_out_of_wall(v: Vector3) -> Vector3:
+	if not is_on_wall():
+		return v
+	var wn: Vector3 = get_wall_normal()
+	wn.y = 0.0
+	if wn.length_squared() > 0.0001:
+		wn = wn.normalized()
+		var into_wall: float = v.dot(wn)
+		if into_wall < 0.0:
+			v -= wn * into_wall
+	return v
 
 
 func _navigate_toward(dest: Vector3, delta: float, use_separation: bool) -> void:
@@ -274,24 +305,29 @@ func _navigate_toward(dest: Vector3, delta: float, use_separation: bool) -> void
 
 	var do_sep: bool = use_separation and not far_from_player
 	var separation: Vector3 = _compute_separation() if do_sep else Vector3.ZERO
-	if is_on_wall() and separation.length_squared() > 0.0001:
-		var wn: Vector3 = get_wall_normal()
-		wn.y = 0.0
-		if wn.length_squared() > 0.0001:
-			wn = wn.normalized()
-			var into_wall: float = separation.dot(wn)
-			if into_wall < 0.0:
-				separation -= wn * into_wall
-	var desired_dir: Vector3 = move_dir + separation * separation_strength
+	separation = _project_out_of_wall(separation)
+	var sep_weight: float = separation_strength * (0.2 if (nav_agent != null and nav_agent.avoidance_enabled) else 0.5)
+	var desired_dir: Vector3 = move_dir + separation * sep_weight
 	desired_dir.y = 0.0
 	if desired_dir.length_squared() > 0.001:
 		desired_dir = desired_dir.normalized()
 
 	var speed: float = data.move_speed * speed_multiplier
-	velocity.x = desired_dir.x * speed
-	velocity.z = desired_dir.z * speed
+	var desired_vel := Vector3(desired_dir.x * speed, 0.0, desired_dir.z * speed)
+	var applied_vel: Vector3 = desired_vel
+	if nav_agent != null and nav_agent.avoidance_enabled:
+		nav_agent.max_speed = speed
+		nav_agent.set_velocity(desired_vel)
+		if _has_safe_velocity:
+			applied_vel = _safe_velocity
+			applied_vel.y = 0.0
+			if applied_vel.length_squared() > speed * speed:
+				applied_vel = applied_vel.normalized() * speed
+	applied_vel = _project_out_of_wall(applied_vel)
+	velocity.x = applied_vel.x
+	velocity.z = applied_vel.z
 
-	_check_stuck(delta)
+	_check_stuck(delta, dest)
 
 
 func _process_attack_windup(delta: float) -> void:
@@ -347,6 +383,9 @@ func transition_to(new_state: State) -> void:
 				nav_agent.target_position = global_position
 			_stuck_timer = 0.0
 			_stuck_stage = 0
+			_stuck_best_dest_dist = INF
+			_no_progress_timer = 0.0
+			_has_safe_velocity = false
 			_last_stuck_check_pos = global_position if is_inside_tree() else position
 		State.ATTACK_WINDUP:
 			_state_timer = data.attack_windup if data else 0.4
@@ -413,13 +452,28 @@ func _compute_separation() -> Vector3:
 	return push
 
 
-func _check_stuck(delta: float) -> void:
+func _check_stuck(delta: float, dest: Vector3 = Vector3.ZERO) -> void:
 	if current_mode == Mode.APPROACH_BARRICADE and _claimed_slot == null and assigned_barricade != null and is_instance_valid(assigned_barricade):
 		var wp: Vector3 = assigned_barricade.get_waiting_position(_wait_index)
 		if Vector2(global_position.x - wp.x, global_position.z - wp.z).length() <= 1.25:
 			_stuck_timer = 0.0
+			_no_progress_timer = 0.0
+			_stuck_best_dest_dist = INF
 			_last_stuck_check_pos = global_position
 			return
+
+	var dest_dist: float = Vector2(global_position.x - dest.x, global_position.z - dest.z).length()
+	if dest_dist <= 2.4 or _stuck_best_dest_dist == INF or dest_dist < _stuck_best_dest_dist - 0.30:
+		_stuck_best_dest_dist = dest_dist
+		_no_progress_timer = 0.0
+	else:
+		_no_progress_timer += delta
+		if _no_progress_timer >= 3.2:
+			_no_progress_timer = 0.0
+			_stuck_best_dest_dist = INF
+			_relocate_to_navmesh(dest)
+			return
+
 	_stuck_timer += delta
 	if _stuck_timer < stuck_timeout:
 		return
@@ -439,27 +493,45 @@ func _check_stuck(delta: float) -> void:
 	stuck_recovery_count += 1
 	if _stuck_stage == 1:
 		if debug_logging:
-			print("[ZombieAI] ", name, " stuck stage 1: re-pathing")
+			print("[ZombieAI] ", name, " stuck stage 1: re-pathing and snapping if off-navmesh")
+		_path_timer = 0.0
 		if nav_agent != null:
+			var nav_map: RID = nav_agent.get_navigation_map()
+			var closest: Vector3 = NavigationServer3D.map_get_closest_point(nav_map, global_position)
+			if closest != Vector3.ZERO and Vector2(global_position.x - closest.x, global_position.z - closest.z).length() > 0.35:
+				global_position = Vector3(closest.x, global_position.y, closest.z)
 			if current_mode == Mode.APPROACH_BARRICADE and assigned_barricade != null:
 				nav_agent.target_position = assigned_barricade.get_outside_approach_point()
 			elif current_mode == Mode.ENTER_BARRICADE and assigned_barricade != null:
 				nav_agent.target_position = assigned_barricade.get_inside_entry_point()
 			elif target_player != null:
 				nav_agent.target_position = target_player.global_position
-	elif _stuck_stage == 2:
-		if debug_logging:
-			print("[ZombieAI] ", name, " stuck stage 2: nudging")
-		velocity += Vector3(randf_range(-2.5, 2.5), 2.0, randf_range(-2.5, 2.5))
 	else:
 		if debug_logging:
-			print("[ZombieAI] ", name, " stuck stage 3: teleporting to nearest navmesh point")
-		if nav_agent != null:
-			var nav_map: RID = nav_agent.get_navigation_map()
-			var closest: Vector3 = NavigationServer3D.map_get_closest_point(nav_map, global_position)
-			if closest != Vector3.ZERO:
-				global_position = closest
-		_stuck_stage = 0
+			print("[ZombieAI] ", name, " stuck stage 2: relocating to closest navmesh point")
+		_relocate_to_navmesh(dest)
+
+
+func _relocate_to_navmesh(dest: Vector3) -> void:
+	if nav_agent != null:
+		var nav_map: RID = nav_agent.get_navigation_map()
+		var closest: Vector3 = NavigationServer3D.map_get_closest_point(nav_map, global_position)
+		var to_dest: Vector3 = dest - closest
+		to_dest.y = 0.0
+		if to_dest.length_squared() > 0.01:
+			var nudged: Vector3 = NavigationServer3D.map_get_closest_point(nav_map, closest + to_dest.normalized() * 0.6)
+			if nudged != Vector3.ZERO:
+				closest = nudged
+		if closest != Vector3.ZERO:
+			global_position = Vector3(closest.x, global_position.y, closest.z)
+		nav_agent.target_position = dest if dest != Vector3.ZERO else (target_player.global_position if target_player != null else global_position)
+	velocity.x = 0.0
+	velocity.z = 0.0
+	_safe_velocity = Vector3.ZERO
+	_has_safe_velocity = false
+	_path_timer = 0.0
+	_stuck_stage = 0
+	_stuck_best_dest_dist = INF
 
 
 func _on_damaged(_amount: float, is_headshot: bool, source: Node, _remaining: float) -> void:
@@ -546,6 +618,10 @@ func reset_for_pool(spawn_pos: Vector3, health_mult: float = 1.0, speed_mult: fl
 	_stagger_cooldown_timer = 0.0
 	_stuck_timer = 0.0
 	_stuck_stage = 0
+	_stuck_best_dest_dist = INF
+	_no_progress_timer = 0.0
+	_safe_velocity = Vector3.ZERO
+	_has_safe_velocity = false
 	_last_stuck_check_pos = spawn_pos
 	reset_watchdog()
 	_death_emitted = false

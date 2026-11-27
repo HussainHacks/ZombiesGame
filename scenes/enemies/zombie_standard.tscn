@@ -61,6 +61,12 @@ shape = SubResource("CapsuleShape3D_body")
 [node name="NavigationAgent3D" type="NavigationAgent3D" parent="."]
 path_desired_distance = 0.25
 target_desired_distance = 0.5
+avoidance_enabled = true
+radius = 0.25
+neighbor_distance = 1.2
+max_neighbors = 4
+time_horizon_agents = 0.25
+time_horizon_obstacles = 0.2
 
 [node name="HealthComponent" type="Node" parent="."]
 script = ExtResource("3_health")
