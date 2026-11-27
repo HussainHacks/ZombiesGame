@@ -641,7 +641,9 @@ func reset_for_pool(spawn_pos: Vector3, health_mult: float = 1.0, speed_mult: fl
 	apply_round_scaling(health_mult, speed_mult)
 	if visual:
 		visual.visible = true
-		if visual.body_pivot:
+		if visual.has_method("reset_visual"):
+			visual.call("reset_visual")
+		elif visual.body_pivot:
 			visual.body_pivot.position.y = 0.0
 			visual.body_pivot.rotation = Vector3.ZERO
 	visible = true

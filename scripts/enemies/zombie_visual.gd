@@ -1,145 +1,153 @@
 class_name ZombieVisual
 extends Node3D
-## Swappable greybox zombie visual rig with code-driven procedural animation
-## and per-instance skin, torn-clothing, emissive eye, and posture variation.
+## Thin AnimationTree state-machine driver for the rigged zombie model.
+## Maps ZombieAI.State and horizontal speed onto AnimationNodeStateMachine
+## states (idle, walk, attack, hit_react, death) with speed-matched walk rate.
 
-const SKIN_TONES := [
-	Color(0.36, 0.44, 0.34, 1.0),
-	Color(0.42, 0.43, 0.36, 1.0),
-	Color(0.30, 0.36, 0.32, 1.0),
-	Color(0.46, 0.41, 0.37, 1.0),
-]
+const STRIDE_METERS_PER_CYCLE: float = 1.75
 
-const CLOTH_COLORS := [
-	Color(0.18, 0.16, 0.19, 1.0),
-	Color(0.24, 0.15, 0.14, 1.0),
-	Color(0.14, 0.19, 0.17, 1.0),
-	Color(0.22, 0.20, 0.16, 1.0),
-]
+@onready var body_pivot: Node3D = $ZombieRig
+@onready var anim_player: AnimationPlayer = $ZombieRig/AnimationPlayer
 
-const PANTS_COLORS := [
-	Color(0.12, 0.14, 0.18, 1.0),
-	Color(0.15, 0.13, 0.11, 1.0),
-	Color(0.10, 0.12, 0.14, 1.0),
-]
-
-@onready var body_pivot: Node3D = $BodyPivot
-@onready var torso: Node3D = $BodyPivot/Torso
-@onready var head: Node3D = $BodyPivot/Torso/Head
-@onready var left_arm: Node3D = $BodyPivot/Torso/LeftArm
-@onready var right_arm: Node3D = $BodyPivot/Torso/RightArm
-@onready var left_leg: Node3D = $BodyPivot/LeftLeg
-@onready var right_leg: Node3D = $BodyPivot/RightLeg
-
-var _walk_time: float = 0.0
-var _base_hunch_deg: float = 18.0
+var anim_tree: AnimationTree = null
+var playback: AnimationNodeStateMachinePlayback = null
+var _last_state: int = -1
 
 
 func _ready() -> void:
-	apply_random_variation()
-
-
-func apply_random_variation() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
-	var s: float = rng.randf_range(0.94, 1.08)
-	scale = Vector3(s, rng.randf_range(0.95, 1.07), s)
-	_base_hunch_deg = rng.randf_range(13.0, 25.0)
-
-	var skin_mat := StandardMaterial3D.new()
-	skin_mat.albedo_color = SKIN_TONES[rng.randi_range(0, SKIN_TONES.size() - 1)]
-	skin_mat.roughness = 0.85
-
-	var cloth_mat := StandardMaterial3D.new()
-	cloth_mat.albedo_color = CLOTH_COLORS[rng.randi_range(0, CLOTH_COLORS.size() - 1)]
-	cloth_mat.roughness = 0.92
-
-	var pants_mat := StandardMaterial3D.new()
-	pants_mat.albedo_color = PANTS_COLORS[rng.randi_range(0, PANTS_COLORS.size() - 1)]
-	pants_mat.roughness = 0.95
-
-	var head_mesh := get_node_or_null("BodyPivot/Torso/Head/HeadMesh") as MeshInstance3D
-	var l_arm_mesh := get_node_or_null("BodyPivot/Torso/LeftArm/ArmMesh") as MeshInstance3D
-	var r_arm_mesh := get_node_or_null("BodyPivot/Torso/RightArm/ArmMesh") as MeshInstance3D
-	var torso_mesh := get_node_or_null("BodyPivot/Torso/TorsoMesh") as MeshInstance3D
-	var l_leg_mesh := get_node_or_null("BodyPivot/LeftLeg/LegMesh") as MeshInstance3D
-	var r_leg_mesh := get_node_or_null("BodyPivot/RightLeg/LegMesh") as MeshInstance3D
-
-	if head_mesh != null:
-		head_mesh.material_override = skin_mat
-	if l_arm_mesh != null:
-		l_arm_mesh.material_override = skin_mat
-	if r_arm_mesh != null:
-		r_arm_mesh.material_override = skin_mat
-	if torso_mesh != null:
-		torso_mesh.material_override = cloth_mat
-	if l_leg_mesh != null:
-		l_leg_mesh.material_override = pants_mat
-	if r_leg_mesh != null:
-		r_leg_mesh.material_override = pants_mat
+	var s: float = rng.randf_range(0.95, 1.06)
+	scale = Vector3(s, rng.randf_range(0.96, 1.05), s)
+	_setup_animation_tree()
 
 
-func update_visual(delta: float, state: int, horizontal_speed: float) -> void:
-	if body_pivot == null:
+func _setup_animation_tree() -> void:
+	if body_pivot == null or anim_player == null:
+		return
+	anim_tree = AnimationTree.new()
+	anim_tree.name = "AnimationTree"
+	body_pivot.add_child(anim_tree)
+	anim_tree.anim_player = anim_tree.get_path_to(anim_player)
+
+	var sm := AnimationNodeStateMachine.new()
+
+	var n_idle := AnimationNodeAnimation.new()
+	n_idle.animation = &"idle"
+	sm.add_node(&"idle", n_idle, Vector2(120, 120))
+
+	# Walk uses a BlendTree with TimeScale so walk speed matches actual velocity
+	var walk_bt := AnimationNodeBlendTree.new()
+	var walk_anim := AnimationNodeAnimation.new()
+	walk_anim.animation = &"walk"
+	var walk_ts := AnimationNodeTimeScale.new()
+	walk_bt.add_node(&"anim", walk_anim, Vector2(100, 100))
+	walk_bt.add_node(&"TimeScale", walk_ts, Vector2(300, 100))
+	walk_bt.connect_node(&"TimeScale", 0, &"anim")
+	walk_bt.connect_node(&"output", 0, &"TimeScale")
+	sm.add_node(&"walk", walk_bt, Vector2(320, 120))
+
+	var n_attack := AnimationNodeAnimation.new()
+	n_attack.animation = &"attack"
+	sm.add_node(&"attack", n_attack, Vector2(520, 60))
+
+	var n_hit := AnimationNodeAnimation.new()
+	n_hit.animation = &"hit_react"
+	sm.add_node(&"hit_react", n_hit, Vector2(520, 200))
+
+	var n_death := AnimationNodeAnimation.new()
+	n_death.animation = &"death"
+	sm.add_node(&"death", n_death, Vector2(720, 120))
+
+	# Start -> idle
+	var t_start := AnimationNodeStateMachineTransition.new()
+	t_start.advance_mode = AnimationNodeStateMachineTransition.ADVANCE_MODE_AUTO
+	sm.add_transition(&"Start", &"idle", t_start)
+
+	# Bidirectional transitions between locomotion and combat states
+	for pair: Array in [
+		[&"idle", &"walk", 0.15],
+		[&"walk", &"idle", 0.15],
+		[&"idle", &"attack", 0.08],
+		[&"walk", &"attack", 0.08],
+		[&"attack", &"idle", 0.12],
+		[&"attack", &"walk", 0.12],
+		[&"idle", &"hit_react", 0.05],
+		[&"walk", &"hit_react", 0.05],
+		[&"attack", &"hit_react", 0.05],
+		[&"idle", &"death", 0.08],
+		[&"walk", &"death", 0.08],
+		[&"attack", &"death", 0.08],
+		[&"hit_react", &"death", 0.08],
+	]:
+		var tr := AnimationNodeStateMachineTransition.new()
+		tr.xfade_time = float(pair[2])
+		sm.add_transition(pair[0], pair[1], tr)
+
+	var t_hit_end := AnimationNodeStateMachineTransition.new()
+	t_hit_end.xfade_time = 0.12
+	t_hit_end.switch_mode = AnimationNodeStateMachineTransition.SWITCH_MODE_AT_END
+	t_hit_end.advance_mode = AnimationNodeStateMachineTransition.ADVANCE_MODE_AUTO
+	sm.add_transition(&"hit_react", &"idle", t_hit_end)
+
+	anim_tree.tree_root = sm
+	anim_tree.active = true
+	playback = anim_tree.get("parameters/playback") as AnimationNodeStateMachinePlayback
+	if playback != null:
+		playback.start(&"idle")
+
+
+func reset_visual() -> void:
+	_last_state = -1
+	if body_pivot != null:
+		body_pivot.position = Vector3.ZERO
+		body_pivot.rotation = Vector3.ZERO
+	if playback != null:
+		playback.start(&"idle")
+
+
+func update_visual(_delta: float, state: int, horizontal_speed: float) -> void:
+	if anim_tree == null or playback == null:
 		return
 
 	# State enum values match ZombieAI.State:
 	# 0=IDLE, 1=CHASE, 2=ATTACK_WINDUP, 3=ATTACK, 4=STAGGER, 5=DEAD
 	if state == 5:
-		body_pivot.position.y = lerpf(body_pivot.position.y, 0.25, 8.0 * delta)
-		body_pivot.rotation.x = lerpf(body_pivot.rotation.x, deg_to_rad(-86.0), 8.0 * delta)
+		if _last_state != 5:
+			playback.travel(&"death")
+			_last_state = 5
 		return
 
-	body_pivot.position.y = lerpf(body_pivot.position.y, 0.0, 10.0 * delta)
-	body_pivot.rotation.x = lerpf(body_pivot.rotation.x, 0.0, 10.0 * delta)
-
-	if state == 4: # STAGGER
-		if torso:
-			torso.rotation.x = lerpf(torso.rotation.x, deg_to_rad(-24.0), 16.0 * delta)
-		if head:
-			head.rotation.x = lerpf(head.rotation.x, deg_to_rad(-20.0), 16.0 * delta)
+	if state == 4:
+		if _last_state != 4:
+			playback.travel(&"hit_react")
+			_last_state = 4
 		return
 
-	# Hunched forward posture
-	var target_torso_pitch: float = deg_to_rad(_base_hunch_deg)
-	if torso:
-		torso.rotation.x = lerpf(torso.rotation.x, target_torso_pitch, 10.0 * delta)
-	if head:
-		head.rotation.x = lerpf(head.rotation.x, deg_to_rad(-10.0), 10.0 * delta)
-
-	if state == 2: # ATTACK_WINDUP
-		if left_arm:
-			left_arm.rotation.x = lerpf(left_arm.rotation.x, deg_to_rad(-145.0), 14.0 * delta)
-		if right_arm:
-			right_arm.rotation.x = lerpf(right_arm.rotation.x, deg_to_rad(-145.0), 14.0 * delta)
+	if state == 2 or state == 3:
+		if _last_state != 2 and _last_state != 3:
+			playback.travel(&"attack")
+		_last_state = state
 		return
 
-	if state == 3: # ATTACK
-		if left_arm:
-			left_arm.rotation.x = lerpf(left_arm.rotation.x, deg_to_rad(-35.0), 22.0 * delta)
-		if right_arm:
-			right_arm.rotation.x = lerpf(right_arm.rotation.x, deg_to_rad(-35.0), 22.0 * delta)
-		return
-
-	# IDLE / CHASE limb swing
-	if horizontal_speed > 0.2:
-		_walk_time += delta * horizontal_speed * 2.2
-		var swing: float = sin(_walk_time) * deg_to_rad(32.0)
-		if left_leg:
-			left_leg.rotation.x = swing
-		if right_leg:
-			right_leg.rotation.x = -swing
-		if left_arm:
-			left_arm.rotation.x = lerpf(left_arm.rotation.x, deg_to_rad(-72.0) - swing * 0.25, 10.0 * delta)
-		if right_arm:
-			right_arm.rotation.x = lerpf(right_arm.rotation.x, deg_to_rad(-72.0) + swing * 0.25, 10.0 * delta)
+	if horizontal_speed > 0.15:
+		var walk_rate: float = maxf(horizontal_speed / STRIDE_METERS_PER_CYCLE, 0.25)
+		anim_tree.set("parameters/walk/TimeScale/scale", walk_rate)
+		if playback.get_current_node() != &"walk":
+			playback.travel(&"walk")
 	else:
-		_walk_time = 0.0
-		if left_leg:
-			left_leg.rotation.x = lerpf(left_leg.rotation.x, 0.0, 10.0 * delta)
-		if right_leg:
-			right_leg.rotation.x = lerpf(right_leg.rotation.x, 0.0, 10.0 * delta)
-		if left_arm:
-			left_arm.rotation.x = lerpf(left_arm.rotation.x, deg_to_rad(-65.0), 10.0 * delta)
-		if right_arm:
-			right_arm.rotation.x = lerpf(right_arm.rotation.x, deg_to_rad(-65.0), 10.0 * delta)
+		if playback.get_current_node() != &"idle":
+			playback.travel(&"idle")
+	_last_state = state
+
+
+func get_current_anim_state() -> StringName:
+	if playback == null:
+		return &""
+	return playback.get_current_node()
+
+
+func get_walk_time_scale() -> float:
+	if anim_tree == null:
+		return 1.0
+	return float(anim_tree.get("parameters/walk/TimeScale/scale"))
