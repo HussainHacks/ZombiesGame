@@ -1,7 +1,8 @@
 extends RefCounted
-## Phase 16 integration test: rigged humanoid zombie has 1 skinned mesh + Skeleton3D,
-## AnimationTree state machine scales walk rate, reaches "attack" in range, and
-## reaches "death" on lethal damage before cleanup.
+## Phase 16 integration tests (Issue #1):
+## (a) A spawned crowd contains both male and female variants from data.
+## (b) Both variants share the humanoid skeleton & AnimationTree, scale walk
+##     speed, reach "attack" when in range, and reach "death" on lethal damage.
 
 const CompoundScene := preload("res://scenes/environment/greybox_compound.tscn")
 const ZombieScene := preload("res://scenes/enemies/zombie_standard.tscn")
@@ -13,7 +14,8 @@ var failed: int = 0
 func run_all(tree: SceneTree) -> Dictionary:
 	passed = 0
 	failed = 0
-	await _run_test(tree, "zombie_rig_state_machine_walk_attack_and_death", _test_zombie_rig_states)
+	await _run_test(tree, "spawned_crowd_contains_both_male_and_female_variants", _test_crowd_both_variants)
+	await _run_test(tree, "both_variants_reach_attack_and_death_states", _test_both_variants_states)
 	return {"passed": passed, "failed": failed}
 
 
@@ -27,7 +29,34 @@ func _run_test(tree: SceneTree, test_name: String, fn: Callable) -> void:
 		failed += 1
 
 
-func _test_zombie_rig_states(tree: SceneTree) -> String:
+func _test_crowd_both_variants(tree: SceneTree) -> String:
+	var counts := {"male": 0, "female": 0}
+	var shared_mats := {}
+	var spawned: Array[ZombieAI] = []
+
+	for i: int in range(24):
+		var z := ZombieScene.instantiate() as ZombieAI
+		tree.root.add_child(z)
+		spawned.append(z)
+		var vid: String = z.visual.get_variant_id()
+		counts[vid] = int(counts.get(vid, 0)) + 1
+		var mi := z.visual.mesh_inst
+		if mi != null and mi.material_override != null:
+			shared_mats[mi.material_override.get_instance_id()] = true
+
+	await tree.process_frame
+	for z: ZombieAI in spawned:
+		z.queue_free()
+	await tree.process_frame
+
+	if int(counts.get("male", 0)) == 0 or int(counts.get("female", 0)) == 0:
+		return "Spawned crowd missing a variant (male=%d, female=%d)" % [counts["male"], counts["female"]]
+	if shared_mats.size() != 1:
+		return "Expected 1 shared material across all variants, got %d" % shared_mats.size()
+	return ""
+
+
+func _test_both_variants_states(tree: SceneTree) -> String:
 	var compound := CompoundScene.instantiate() as Node3D
 	tree.root.add_child(compound)
 	var nav_region := compound.get_node("NavRegion") as NavigationRegion3D
@@ -46,74 +75,67 @@ func _test_zombie_rig_states(tree: SceneTree) -> String:
 	player.player_health.health_component.restore_full_health()
 	player.global_position = Vector3(0.0, 0.1, 6.0)
 
-	var z := ZombieScene.instantiate() as ZombieAI
-	compound.add_child(z)
-	z.global_position = Vector3(0.0, 0.1, 2.0)
-	z.target_player = player
-	z.apply_round_scaling(1.0, 1.5)
-	await tree.physics_frame
-
-	# Verify single skinned MeshInstance3D + Skeleton3D + active AnimationTree
-	var rig := z.visual.get_node_or_null("ZombieRig") as Node3D
-	if rig == null:
-		compound.queue_free()
-		await tree.process_frame
-		return "ZombieRig missing under VisualRoot"
-	var skel := rig.find_child("Skeleton3D", true, false) as Skeleton3D
-	var skinned_meshes := rig.find_children("*", "MeshInstance3D", true, false)
-	if skel == null or skel.get_bone_count() < 10:
-		compound.queue_free()
-		await tree.process_frame
-		return "Skeleton3D missing or insufficient bones"
-	if skinned_meshes.size() != 1:
-		compound.queue_free()
-		await tree.process_frame
-		return "Expected exactly 1 skinned MeshInstance3D, got %d" % skinned_meshes.size()
-	if z.visual.anim_tree == null or not z.visual.anim_tree.active:
-		compound.queue_free()
-		await tree.process_frame
-		return "AnimationTree missing or inactive"
-
-	# 1. Chase -> walk state with scaled TimeScale
-	z.transition_to(ZombieAI.State.CHASE)
-	var saw_walk: bool = false
-	var walk_scale: float = 0.0
-	var saw_attack: bool = false
-	for _f: int in range(180):
+	for vid: String in ["male", "female"]:
+		var z := ZombieScene.instantiate() as ZombieAI
+		compound.add_child(z)
+		z.global_position = Vector3(0.0, 0.1, 2.0)
+		z.target_player = player
+		z.apply_round_scaling(1.0, 1.5)
+		if not z.visual.set_variant(vid):
+			compound.queue_free()
+			await tree.process_frame
+			return "Failed to select variant '%s'" % vid
 		await tree.physics_frame
-		await tree.process_frame
-		var cur: StringName = z.visual.get_current_anim_state()
-		if cur == &"walk":
-			saw_walk = true
-			walk_scale = z.visual.get_walk_time_scale()
-		if cur == &"attack":
-			saw_attack = true
-			break
 
-	if not saw_walk or walk_scale <= 1.2:
-		compound.queue_free()
-		await tree.process_frame
-		return "Zombie did not reach walk with scaled rate (saw_walk=%s, walk_scale=%.2f)" % [saw_walk, walk_scale]
-	if not saw_attack:
-		compound.queue_free()
-		await tree.process_frame
-		return "Zombie AnimationTree did not reach attack when in range (cur=%s)" % str(z.visual.get_current_anim_state())
+		var rig := z.visual.get_node_or_null("ZombieRig") as Node3D
+		var skel := rig.find_child("Skeleton3D", true, false) as Skeleton3D if rig != null else null
+		var skinned_meshes := rig.find_children("*", "MeshInstance3D", true, false) if rig != null else []
+		if skel == null or skel.get_bone_count() < 12 or skinned_meshes.size() != 1:
+			compound.queue_free()
+			await tree.process_frame
+			return "Variant '%s' rig invalid (skel=%s, meshes=%d)" % [vid, str(skel != null), skinned_meshes.size()]
 
-	# 2. Lethal damage -> death state before cleanup
-	z.health_component.take_damage(9999.0, false, player)
-	var saw_death: bool = false
-	for _f: int in range(30):
-		await tree.physics_frame
-		await tree.process_frame
-		if is_instance_valid(z) and z.visual.get_current_anim_state() == &"death":
-			saw_death = true
-			break
+		z.transition_to(ZombieAI.State.CHASE)
+		var saw_walk: bool = false
+		var walk_scale: float = 0.0
+		var saw_attack: bool = false
+		for _f: int in range(180):
+			await tree.physics_frame
+			await tree.process_frame
+			var cur: StringName = z.visual.get_current_anim_state()
+			if cur == &"walk":
+				saw_walk = true
+				walk_scale = z.visual.get_walk_time_scale()
+			if cur == &"attack":
+				saw_attack = true
+				break
 
-	if is_instance_valid(z):
-		z.queue_free()
+		if not saw_walk or walk_scale <= 1.2:
+			compound.queue_free()
+			await tree.process_frame
+			return "Variant '%s' did not reach walk with scaled rate (saw_walk=%s, scale=%.2f)" % [vid, saw_walk, walk_scale]
+		if not saw_attack:
+			compound.queue_free()
+			await tree.process_frame
+			return "Variant '%s' did not reach attack in range" % vid
+
+		z.health_component.take_damage(9999.0, false, player)
+		var saw_death: bool = false
+		for _f: int in range(30):
+			await tree.physics_frame
+			await tree.process_frame
+			if is_instance_valid(z) and z.visual.get_current_anim_state() == &"death":
+				saw_death = true
+				break
+
+		if is_instance_valid(z):
+			z.queue_free()
+		await tree.process_frame
+		if not saw_death:
+			compound.queue_free()
+			await tree.process_frame
+			return "Variant '%s' did not reach death on lethal damage" % vid
+
 	compound.queue_free()
 	await tree.process_frame
-
-	if not saw_death:
-		return "Zombie AnimationTree did not reach death on lethal damage"
 	return ""

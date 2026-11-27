@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ZombieVariantData" format=3]
+
+[ext_resource type="ArrayMesh" path="res://resources/enemies/zombie_female_mesh.tres" id="1_dhlvi"]
+[ext_resource type="Script" path="res://scripts/enemies/zombie_variant_data.gd" id="2_ah05u"]
+
+[resource]
+script = ExtResource("2_ah05u")
+variant_id = "female"
+mesh = ExtResource("1_dhlvi")
+idle_quirk_anim = &"idle_female_nails"
+attack_anim = &"attack_female_handbag"
+death_anim = &"death_female_faint"

@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/enemies/zombie_ai.gd" id="1_ai"]
 [ext_resource type="Resource" path="res://resources/enemies/standard_zombie.tres" id="2_data"]
@@ -6,6 +6,8 @@
 [ext_resource type="Script" path="res://scripts/combat/hitbox.gd" id="4_hitbox"]
 [ext_resource type="Script" path="res://scripts/enemies/zombie_visual.gd" id="5_visual"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/zombie_rig.tscn" id="6_rig"]
+[ext_resource type="Resource" path="res://resources/enemies/variant_male.tres" id="7_male"]
+[ext_resource type="Resource" path="res://resources/enemies/variant_female.tres" id="8_female"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.35
@@ -69,5 +71,6 @@ max_distance = 25.0
 
 [node name="VisualRoot" type="Node3D" parent="."]
 script = ExtResource("5_visual")
+variants = Array[Resource]([ExtResource("7_male"), ExtResource("8_female")])
 
 [node name="ZombieRig" parent="VisualRoot" instance=ExtResource("6_rig")]

@@ -45,12 +45,14 @@ func _run() -> void:
 	if not player.is_flashlight_on():
 		player.toggle_flashlight()
 
-	# Spawn 20 active zombies in StartRoom / Hall / Yard
+	# Spawn 20 active zombies in StartRoom / Hall / Yard (alternating male & female variants)
 	var zombies: Array[ZombieAI] = []
 	for i: int in range(20):
 		var z := ZombieScene.instantiate() as ZombieAI
 		compound.add_child(z)
 		z.global_position = Vector3(float(i % 5 - 2) * 1.6, 0.0, 4.0 - float(i / 5) * 1.4)
+		if z.visual != null:
+			z.visual.set_variant("male" if i % 2 == 0 else "female")
 		z.transition_to(ZombieAI.State.CHASE)
 		zombies.append(z)
 

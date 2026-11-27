@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="ZombieVariantData" format=3]
+
+[ext_resource type="ArrayMesh" path="res://resources/enemies/zombie_male_mesh.tres" id="1_vkoxo"]
+[ext_resource type="Script" path="res://scripts/enemies/zombie_variant_data.gd" id="2_syx4t"]
+
+[resource]
+script = ExtResource("2_syx4t")
+mesh = ExtResource("1_vkoxo")
