@@ -30,6 +30,7 @@ const INTEGRATION_SUITES := [
 	"res://tests/integration/test_phase11_release.gd",
 	"res://tests/integration/test_controller_integration.gd",
 	"res://tests/integration/test_phase13_movement_anims_props.gd",
+	"res://tests/integration/test_phase14_collision.gd",
 ]
 
 

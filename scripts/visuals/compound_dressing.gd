@@ -1,8 +1,20 @@
 class_name CompoundDressing
 extends Node3D
 ## Deliberately placed primitive props, signs, outdoor farm yard ground/clutter,
-## and distant tree-line MultiMesh silhouette. Non-blocking (no StaticBody3D
-## inside NavRegion) so navigation paths are never obstructed.
+## and distant tree-line MultiMesh silhouette. Solid props automatically receive
+## a StaticBody3D + CollisionShape3D fitted to their mesh unless explicitly
+## tagged with a reason from NON_SOLID_DECORATION_REASONS.
+
+## Explicit exception list of deliberately non-solid decorations and why:
+const NON_SOLID_DECORATION_REASONS := {
+	"ground_overlay": "Flat 0.01m-0.02m dirt/grass/outer-ground surface overlays flush on floor or outside playable bounds; Floor StaticBody3D provides collision.",
+	"overhead_fixture": "Ceiling-mounted HangingLamp (y >= 2.6m) and overhead doorway lintel (y >= 2.15m) above player height (1.8m).",
+	"tree_canopy": "Elevated foliage cone (y >= 2.6m) above the solid tree trunk; trunk StaticBody3D blocks movement into the tree.",
+	"thin_tarp": "Thin 0.04m fabric tarp resting on top of StartRoom crate; underlying crate StaticBody3D provides solid collision.",
+	"headlight_lens": "Flush 0.06m emissive headlight lens meshes on CrashedCar; vehicle body StaticBody3Ds cover the hull.",
+	"creaking_board": "Thin 0.05m decorative loose fence boards mounted flush against exterior fence; fence posts/rails provide collision.",
+	"distant_treeline": "MultiMeshInstance3D silhouette ring at 34m-46m radius outside the +/-18m playable perimeter walls.",
+}
 
 const MAT_WOOD := preload("res://resources/materials/mat_worn_wood.tres")
 const MAT_CONCRETE := preload("res://resources/materials/mat_concrete.tres")
@@ -57,24 +69,57 @@ func _process(delta: float) -> void:
 		_spark_light.light_energy = maxf(_spark_light.light_energy - delta * 14.0, 0.0)
 
 
-func _add_collider_box(parent: Node3D, body_name: String, pos: Vector3, sz: Vector3, surface: String, rot_y: float = 0.0) -> StaticBody3D:
+func _infer_surface(mat: Material) -> String:
+	if mat == MAT_WOOD:
+		return "wood"
+	if mat == MAT_METAL:
+		return "metal"
+	if mat == MAT_DIRT:
+		return "dirt"
+	return "concrete"
+
+
+func _attach_fitted_box_collider(mi: MeshInstance3D, sz: Vector3, surface: String) -> StaticBody3D:
 	var sb := StaticBody3D.new()
-	sb.name = body_name
+	sb.name = "PropCollider"
 	sb.collision_layer = 1
 	sb.collision_mask = 0
-	sb.position = pos
-	sb.rotation.y = rot_y
 	sb.set_meta("surface", surface)
 	var cs := CollisionShape3D.new()
 	var shape := BoxShape3D.new()
 	shape.size = sz
 	cs.shape = shape
 	sb.add_child(cs)
-	parent.add_child(sb)
+	mi.add_child(sb)
 	return sb
 
 
-func _add_box(parent: Node3D, pos: Vector3, sz: Vector3, mat: Material, rot_y: float = 0.0) -> MeshInstance3D:
+func _attach_fitted_cyl_collider(mi: MeshInstance3D, r: float, h: float, surface: String) -> StaticBody3D:
+	var sb := StaticBody3D.new()
+	sb.name = "PropCollider"
+	sb.collision_layer = 1
+	sb.collision_mask = 0
+	sb.set_meta("surface", surface)
+	var cs := CollisionShape3D.new()
+	var shape := CylinderShape3D.new()
+	shape.radius = r
+	shape.height = h
+	cs.shape = shape
+	sb.add_child(cs)
+	mi.add_child(sb)
+	return sb
+
+
+func _mark_non_solid(node: Node, exception_tag: String) -> void:
+	var valid: bool = NON_SOLID_DECORATION_REASONS.has(exception_tag)
+	assert(valid, "Non-solid prop must specify a valid reason from NON_SOLID_DECORATION_REASONS, got: '%s'" % exception_tag)
+	if not valid:
+		push_error("[CompoundDressing] Non-solid prop missing valid exception reason: '%s'" % exception_tag)
+		return
+	node.set_meta("non_solid_exception", exception_tag)
+
+
+func _add_box(parent: Node3D, pos: Vector3, sz: Vector3, mat: Material, rot_y: float = 0.0, solid: bool = true, exception_tag: String = "", surface: String = "") -> MeshInstance3D:
 	var mi := MeshInstance3D.new()
 	var mesh := BoxMesh.new()
 	mesh.size = sz
@@ -84,10 +129,15 @@ func _add_box(parent: Node3D, pos: Vector3, sz: Vector3, mat: Material, rot_y: f
 	mi.rotation.y = rot_y
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	parent.add_child(mi)
+	if solid:
+		var surf: String = surface if not surface.is_empty() else _infer_surface(mat)
+		_attach_fitted_box_collider(mi, sz, surf)
+	else:
+		_mark_non_solid(mi, exception_tag)
 	return mi
 
 
-func _add_cyl(parent: Node3D, pos: Vector3, r: float, h: float, mat: Material, rot: Vector3 = Vector3.ZERO) -> MeshInstance3D:
+func _add_cyl(parent: Node3D, pos: Vector3, r: float, h: float, mat: Material, rot: Vector3 = Vector3.ZERO, solid: bool = true, exception_tag: String = "", surface: String = "") -> MeshInstance3D:
 	var mi := MeshInstance3D.new()
 	var mesh := CylinderMesh.new()
 	mesh.top_radius = r
@@ -100,19 +150,44 @@ func _add_cyl(parent: Node3D, pos: Vector3, r: float, h: float, mat: Material, r
 	mi.rotation = rot
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	parent.add_child(mi)
+	if solid:
+		var surf: String = surface if not surface.is_empty() else _infer_surface(mat)
+		_attach_fitted_cyl_collider(mi, r, h, surf)
+	else:
+		_mark_non_solid(mi, exception_tag)
+	return mi
+
+
+func _add_cone(parent: Node3D, pos: Vector3, top_r: float, bottom_r: float, h: float, mat: Material, radial_segs: int = 8, solid: bool = true, exception_tag: String = "", surface: String = "") -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	var cone := CylinderMesh.new()
+	cone.top_radius = top_r
+	cone.bottom_radius = bottom_r
+	cone.height = h
+	cone.radial_segments = radial_segs
+	mi.mesh = cone
+	mi.material_override = mat
+	mi.position = pos
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(mi)
+	if solid:
+		var surf: String = surface if not surface.is_empty() else _infer_surface(mat)
+		_attach_fitted_cyl_collider(mi, maxf(top_r, bottom_r), h, surf)
+	else:
+		_mark_non_solid(mi, exception_tag)
 	return mi
 
 
 func _build_outdoor_ground_and_treeline() -> void:
-	# Outer rural night ground beyond the ±18m perimeter walls
-	_add_box(self, Vector3(0.0, -0.02, 0.0), Vector3(140.0, 0.02, 140.0), MAT_DIRT)
-	# Courtyard & outer yard dirt/grass overlay inside ±18m (outside interior [-6..6, -12..12])
-	_add_box(self, Vector3(0.0, 0.008, -15.0), Vector3(35.6, 0.01, 5.8), MAT_DIRT)
-	_add_box(self, Vector3(-12.1, 0.008, 0.0), Vector3(11.6, 0.01, 24.4), MAT_DIRT)
-	_add_box(self, Vector3(12.1, 0.008, 0.0), Vector3(11.6, 0.01, 24.4), MAT_DIRT)
-	_add_box(self, Vector3(0.0, 0.008, 15.2), Vector3(35.6, 0.01, 5.4), MAT_DIRT)
+	# Outer rural night ground beyond the +/-18m perimeter walls (ground overlay)
+	_add_box(self, Vector3(0.0, -0.02, 0.0), Vector3(140.0, 0.02, 140.0), MAT_DIRT, 0.0, false, "ground_overlay")
+	# Courtyard & outer yard dirt/grass overlay inside +/-18m (outside interior [-6..6, -12..12])
+	_add_box(self, Vector3(0.0, 0.008, -15.0), Vector3(35.6, 0.01, 5.8), MAT_DIRT, 0.0, false, "ground_overlay")
+	_add_box(self, Vector3(-12.1, 0.008, 0.0), Vector3(11.6, 0.01, 24.4), MAT_DIRT, 0.0, false, "ground_overlay")
+	_add_box(self, Vector3(12.1, 0.008, 0.0), Vector3(11.6, 0.01, 24.4), MAT_DIRT, 0.0, false, "ground_overlay")
+	_add_box(self, Vector3(0.0, 0.008, 15.2), Vector3(35.6, 0.01, 5.4), MAT_DIRT, 0.0, false, "ground_overlay")
 
-	# Darker grass patches
+	# Darker grass patches (ground overlays)
 	var grass_mat := StandardMaterial3D.new()
 	grass_mat.albedo_color = Color(0.09, 0.14, 0.08, 1.0)
 	grass_mat.roughness = 0.96
@@ -121,9 +196,9 @@ func _build_outdoor_ground_and_treeline() -> void:
 		Vector3(-13.5, 0.015, 4.0), Vector3(13.0, 0.015, -3.5),
 		Vector3(-11.5, 0.015, 13.5), Vector3(12.0, 0.015, 14.0),
 	]:
-		_add_box(self, gp, Vector3(4.2, 0.01, 3.6), grass_mat, 0.35)
+		_add_box(self, gp, Vector3(4.2, 0.01, 3.6), grass_mat, 0.35, false, "ground_overlay")
 
-	# A few simple primitive trees in the outer yard (away from spawn lanes)
+	# Simple primitive trees in the outer yard (solid trunks, non-solid elevated canopies)
 	var trunk_mat := MAT_WOOD
 	var leaf_mat := StandardMaterial3D.new()
 	leaf_mat.albedo_color = Color(0.06, 0.11, 0.07, 1.0)
@@ -134,20 +209,11 @@ func _build_outdoor_ground_and_treeline() -> void:
 		Vector3(-16.0, 0.0, -2.0), Vector3(16.0, 0.0, 1.5),
 	]:
 		_add_cyl(self, tp + Vector3(0.0, 1.8, 0.0), 0.22, 3.6, trunk_mat)
-		var crown := MeshInstance3D.new()
-		var cone := CylinderMesh.new()
-		cone.top_radius = 0.15
-		cone.bottom_radius = 1.45
-		cone.height = 3.8
-		cone.radial_segments = 8
-		crown.mesh = cone
-		crown.material_override = leaf_mat
-		crown.position = tp + Vector3(0.0, 4.5, 0.0)
-		crown.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		add_child(crown)
+		_add_cone(self, tp + Vector3(0.0, 4.5, 0.0), 0.15, 1.45, 3.8, leaf_mat, 8, false, "tree_canopy")
 
 	# Distant tree-line silhouette ring via MultiMeshInstance3D (48 trees, 1 draw call)
 	var mm_inst := MultiMeshInstance3D.new()
+	_mark_non_solid(mm_inst, "distant_treeline")
 	var mm := MultiMesh.new()
 	var tree_mesh := CylinderMesh.new()
 	tree_mesh.top_radius = 0.3
@@ -179,7 +245,7 @@ func _build_interior_props() -> void:
 	# StartRoom corners: crates, table, shelf, fabric tarp
 	_add_box(self, Vector3(-4.9, 0.4, 10.8), Vector3(0.9, 0.8, 0.9), MAT_WOOD, 0.15)
 	_add_box(self, Vector3(-4.8, 1.15, 10.7), Vector3(0.7, 0.7, 0.7), MAT_WOOD, -0.2)
-	_add_box(self, Vector3(-4.8, 0.82, 10.7), Vector3(0.85, 0.04, 0.85), MAT_FABRIC, 0.1)
+	_add_box(self, Vector3(-4.8, 0.82, 10.7), Vector3(0.85, 0.04, 0.85), MAT_FABRIC, 0.1, false, "thin_tarp")
 	_add_cyl(self, Vector3(4.9, 0.5, 10.9), 0.32, 1.0, MAT_METAL)
 	_add_cyl(self, Vector3(4.2, 0.5, 11.1), 0.32, 1.0, MAT_METAL)
 	# Table near south wall (out of center path)
@@ -234,19 +300,18 @@ func _build_phase13_props_and_animated() -> void:
 	car_mat.albedo_color = Color(0.22, 0.27, 0.32, 1.0)
 	car_mat.roughness = 0.55
 	car_mat.metallic = 0.45
-	_add_box(car, Vector3(0.0, 0.55, 0.0), Vector3(1.8, 0.65, 3.8), car_mat)
-	_add_box(car, Vector3(0.0, 1.12, -0.2), Vector3(1.55, 0.52, 1.9), car_mat)
+	_add_box(car, Vector3(0.0, 0.55, 0.0), Vector3(1.8, 0.65, 3.8), car_mat, 0.0, true, "", "metal")
+	_add_box(car, Vector3(0.0, 1.12, -0.2), Vector3(1.55, 0.52, 1.9), car_mat, 0.0, true, "", "metal")
 	for wx: float in [-0.92, 0.92]:
 		for wz: float in [-1.15, 1.15]:
 			_add_cyl(car, Vector3(wx, 0.34, wz), 0.34, 0.24, MAT_CONCRETE, Vector3(0.0, 0.0, PI * 0.5))
-	_add_collider_box(car, "CrashedCarBody", Vector3(0.0, 0.7, 0.0), Vector3(1.9, 1.4, 3.9), "metal")
 	_car_headlight_mat = StandardMaterial3D.new()
 	_car_headlight_mat.albedo_color = Color(1.0, 0.92, 0.7)
 	_car_headlight_mat.emission_enabled = true
 	_car_headlight_mat.emission = Color(1.0, 0.88, 0.55)
 	_car_headlight_mat.emission_energy_multiplier = 2.0
-	_add_box(car, Vector3(-0.6, 0.58, 1.92), Vector3(0.28, 0.16, 0.06), _car_headlight_mat)
-	_add_box(car, Vector3(0.6, 0.58, 1.92), Vector3(0.28, 0.16, 0.06), _car_headlight_mat)
+	_add_box(car, Vector3(-0.6, 0.58, 1.92), Vector3(0.28, 0.16, 0.06), _car_headlight_mat, 0.0, false, "headlight_lens")
+	_add_box(car, Vector3(0.6, 0.58, 1.92), Vector3(0.28, 0.16, 0.06), _car_headlight_mat, 0.0, false, "headlight_lens")
 	_car_headlight = OmniLight3D.new()
 	_car_headlight.position = Vector3(0.0, 0.65, 2.3)
 	_car_headlight.light_color = Color(1.0, 0.9, 0.65)
@@ -265,7 +330,6 @@ func _build_phase13_props_and_animated() -> void:
 	for twx: float in [-1.02, 1.02]:
 		for twz: float in [-1.6, 1.2]:
 			_add_cyl(truck, Vector3(twx, 0.44, twz), 0.44, 0.28, MAT_CONCRETE, Vector3(0.0, 0.0, PI * 0.5))
-	_add_collider_box(truck, "BrokenTruckBody", Vector3(0.0, 0.9, 0.0), Vector3(2.1, 1.8, 4.6), "metal")
 
 	# 3. Concrete Barriers & Sandbag Walls
 	for bx: float in [-3.8, 3.8]:
@@ -274,7 +338,6 @@ func _build_phase13_props_and_animated() -> void:
 		bar.position = Vector3(bx, 0.0, -15.6)
 		add_child(bar)
 		_add_box(bar, Vector3(0.0, 0.45, 0.0), Vector3(2.2, 0.9, 0.55), MAT_CONCRETE)
-		_add_collider_box(bar, "ConcreteBarrierCol", Vector3(0.0, 0.45, 0.0), Vector3(2.2, 0.9, 0.55), "concrete")
 
 	for sz_pos: Vector3 in [Vector3(-14.2, 0.0, 8.5), Vector3(-14.2, 0.0, -8.5)]:
 		var sb_wall := Node3D.new()
@@ -283,8 +346,7 @@ func _build_phase13_props_and_animated() -> void:
 		add_child(sb_wall)
 		for row: int in range(3):
 			for col: int in range(3):
-				_add_box(sb_wall, Vector3(float(col - 1) * 0.65, 0.16 + float(row) * 0.28, 0.0), Vector3(0.6, 0.26, 0.42), MAT_FABRIC, 0.04 * float(row))
-		_add_collider_box(sb_wall, "SandbagWallCol", Vector3(0.0, 0.45, 0.0), Vector3(2.0, 0.9, 0.5), "dirt")
+				_add_box(sb_wall, Vector3(float(col - 1) * 0.65, 0.16 + float(row) * 0.28, 0.0), Vector3(0.6, 0.26, 0.42), MAT_FABRIC, 0.04 * float(row), true, "", "dirt")
 
 	# 4. Yard Wall Segments with Doorway (north-east courtyard)
 	var wall_door := Node3D.new()
@@ -293,9 +355,7 @@ func _build_phase13_props_and_animated() -> void:
 	add_child(wall_door)
 	_add_box(wall_door, Vector3(-1.35, 1.2, 0.0), Vector3(1.5, 2.4, 0.35), MAT_CONCRETE)
 	_add_box(wall_door, Vector3(1.35, 1.2, 0.0), Vector3(1.5, 2.4, 0.35), MAT_CONCRETE)
-	_add_box(wall_door, Vector3(0.0, 2.15, 0.0), Vector3(1.2, 0.5, 0.35), MAT_CONCRETE)
-	_add_collider_box(wall_door, "YardWallLeftCol", Vector3(-1.35, 1.2, 0.0), Vector3(1.5, 2.4, 0.35), "concrete")
-	_add_collider_box(wall_door, "YardWallRightCol", Vector3(1.35, 1.2, 0.0), Vector3(1.5, 2.4, 0.35), "concrete")
+	_add_box(wall_door, Vector3(0.0, 2.15, 0.0), Vector3(1.2, 0.5, 0.35), MAT_CONCRETE, 0.0, false, "overhead_fixture")
 
 	# 5. Fence with Animated Swinging Gate (north center courtyard edge)
 	var fence_gate := Node3D.new()
@@ -304,8 +364,6 @@ func _build_phase13_props_and_animated() -> void:
 	add_child(fence_gate)
 	_add_box(fence_gate, Vector3(-1.2, 0.6, 0.0), Vector3(0.16, 1.2, 0.16), MAT_WOOD)
 	_add_box(fence_gate, Vector3(1.2, 0.6, 0.0), Vector3(0.16, 1.2, 0.16), MAT_WOOD)
-	_add_collider_box(fence_gate, "GatePostLeftCol", Vector3(-1.2, 0.6, 0.0), Vector3(0.2, 1.2, 0.2), "wood")
-	_add_collider_box(fence_gate, "GatePostRightCol", Vector3(1.2, 0.6, 0.0), Vector3(0.2, 1.2, 0.2), "wood")
 	_gate_pivot = Node3D.new()
 	_gate_pivot.name = "SwingingGatePivot"
 	_gate_pivot.position = Vector3(-1.12, 0.0, 0.0)
@@ -318,7 +376,7 @@ func _build_phase13_props_and_animated() -> void:
 		cb.name = "CreakingBoard"
 		cb.position = cb_pos
 		add_child(cb)
-		_add_box(cb, Vector3(0.0, -0.25, 0.0), Vector3(0.18, 0.7, 0.05), MAT_WOOD)
+		_add_box(cb, Vector3(0.0, -0.25, 0.0), Vector3(0.18, 0.7, 0.05), MAT_WOOD, 0.0, false, "creaking_board")
 		_creak_boards.append(cb)
 
 	# 7. Sparking Electric Box on StartRoom west wall
@@ -327,7 +385,6 @@ func _build_phase13_props_and_animated() -> void:
 	ebox.position = Vector3(-5.72, 1.5, 2.2)
 	add_child(ebox)
 	_add_box(ebox, Vector3(0.0, 0.0, 0.0), Vector3(0.18, 0.55, 0.42), MAT_METAL)
-	_add_collider_box(ebox, "ElectricBoxCol", Vector3(0.0, 0.0, 0.0), Vector3(0.2, 0.55, 0.42), "metal")
 	_spark_particles = CPUParticles3D.new()
 	_spark_particles.emitting = false
 	_spark_particles.one_shot = true
@@ -354,19 +411,19 @@ func _build_phase13_props_and_animated() -> void:
 	_spark_light.shadow_enabled = false
 	ebox.add_child(_spark_light)
 
-	# 8. Swaying Hanging Lamp in HallRoom
+	# 8. Swaying Hanging Lamp in HallRoom (overhead ceiling fixture)
 	_hanging_lamp = Node3D.new()
 	_hanging_lamp.name = "HangingLamp"
 	_hanging_lamp.position = Vector3(0.0, 3.5, -6.0)
 	add_child(_hanging_lamp)
-	_add_cyl(_hanging_lamp, Vector3(0.0, -0.35, 0.0), 0.02, 0.7, MAT_METAL)
-	_add_cyl(_hanging_lamp, Vector3(0.0, -0.75, 0.0), 0.22, 0.18, MAT_METAL)
+	_add_cyl(_hanging_lamp, Vector3(0.0, -0.35, 0.0), 0.02, 0.7, MAT_METAL, Vector3.ZERO, false, "overhead_fixture")
+	_add_cyl(_hanging_lamp, Vector3(0.0, -0.75, 0.0), 0.22, 0.18, MAT_METAL, Vector3.ZERO, false, "overhead_fixture")
 	var bulb_mat := StandardMaterial3D.new()
 	bulb_mat.albedo_color = Color(1.0, 0.92, 0.72)
 	bulb_mat.emission_enabled = true
 	bulb_mat.emission = Color(1.0, 0.88, 0.62)
 	bulb_mat.emission_energy_multiplier = 2.0
-	_add_cyl(_hanging_lamp, Vector3(0.0, -0.84, 0.0), 0.08, 0.1, bulb_mat)
+	_add_cyl(_hanging_lamp, Vector3(0.0, -0.84, 0.0), 0.08, 0.1, bulb_mat, Vector3.ZERO, false, "overhead_fixture")
 
 
 func _build_story_signs() -> void:
